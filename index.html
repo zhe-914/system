@@ -3,758 +3,226 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>自动化集成商 - 售前信息管理系统</title>
+    <title>售前信息管理系统</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <style>
-        :root {
-            --bg-primary: #0a0f1a; --bg-secondary: #111827; --bg-card: #1a2332; --bg-input: #0d1320;
-            --border-color: #2a3a52; --border-focus: #3b82f6; --text-primary: #f1f5f9; --text-secondary: #94a3b8;
-            --text-muted: #64748b; --accent-blue: #3b82f6; --accent-cyan: #06b6d4; --accent-emerald: #10b981;
-            --accent-amber: #f59e0b; --accent-rose: #f43f5e; --auth-bg: linear-gradient(135deg, #f0f4ff, #eef2f8);
-            --auth-card-bg: #ffffff; --auth-text-primary: #1a1a2e; --auth-text-secondary: #6b7280; --auth-border: #e5e7eb;
-            --auth-input-bg: #f9fafb; --auth-shadow: 0 30px 80px rgba(0,0,0,0.15); --auth-accent: #4f6ef7;
-            --auth-accent-hover: #3b54e0; --auth-link: #4f6ef7;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Noto Sans SC', 'Inter', sans-serif; min-height: 100vh; overflow-x: hidden; transition: all 0.4s ease; }
-
-        .auth-wrapper { display: flex; min-height: 100vh; background: var(--auth-bg); align-items: center; justify-content: center; padding: 1.5rem; position: relative; overflow: hidden; }
-        .auth-bg-decoration { position: fixed; pointer-events: none; z-index: 0; border-radius: 50%; opacity: 0.08; filter: blur(70px); transition: all 0.5s ease; }
-        .auth-bg-decoration.d1 { width: 550px; height: 550px; background: #4f6ef7; top: -180px; right: -120px; }
-        .auth-bg-decoration.d2 { width: 450px; height: 450px; background: #06b6d4; bottom: -150px; left: -100px; }
-        .auth-bg-decoration.d3 { width: 350px; height: 350px; background: #10b981; top: 40%; left: 50%; transform: translate(-50%, -50%); opacity: 0.05; }
-        .auth-container { position: relative; z-index: 1; width: 100%; max-width: 460px; animation: authFadeIn 0.6s ease-out; }
-        @keyframes authFadeIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        .auth-card { background: var(--auth-card-bg); border-radius: 24px; padding: 3rem 2.5rem; box-shadow: var(--auth-shadow); border: 1px solid var(--auth-border); transition: all 0.3s ease; }
-        .auth-card:hover { transform: translateY(-2px); box-shadow: 0 40px 100px rgba(0,0,0,0.18); }
-        .auth-logo { text-align: center; margin-bottom: 2.5rem; }
-        .auth-logo .logo-icon { width: 60px; height: 60px; background: linear-gradient(135deg, #4f6ef7, #3b54e0); border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1rem; box-shadow: 0 12px 32px rgba(79,110,247,0.3); }
-        .auth-logo h2 { font-family: 'Space Grotesk', sans-serif; font-size: 1.8rem; font-weight: 700; color: var(--auth-text-primary); }
-        .auth-logo p { font-size: 0.9rem; color: var(--auth-text-secondary); margin-top: 0.4rem; }
-        .auth-form { display: flex; flex-direction: column; gap: 1.5rem; }
-        .auth-input-group { display: flex; flex-direction: column; gap: 0.5rem; }
-        .auth-input-group label { font-size: 0.85rem; font-weight: 600; color: var(--auth-text-primary); letter-spacing: 0.3px; }
-        .auth-input-wrapper { position: relative; display: flex; align-items: center; }
-        .auth-input-wrapper .input-icon { position: absolute; left: 16px; color: #9ca3af; pointer-events: none; z-index: 2; width: 20px; height: 20px; }
-        .auth-input-wrapper input { width: 100%; padding: 1rem 1rem 1rem 3rem; background: var(--auth-input-bg); border: 1.5px solid var(--auth-border); border-radius: 14px; font-size: 1rem; font-family: inherit; color: var(--auth-text-primary); transition: all 0.3s ease; outline: none; }
-        .auth-input-wrapper input:focus { border-color: var(--auth-accent); box-shadow: 0 0 0 5px rgba(79,110,247,0.1); background: #fff; }
-        .auth-input-wrapper input::placeholder { color: #c4c9d4; }
-        .auth-input-wrapper .toggle-pwd { position: absolute; right: 12px; background: none; border: none; cursor: pointer; color: #9ca3af; padding: 6px; border-radius: 8px; z-index: 2; transition: all 0.2s; }
-        .auth-input-wrapper .toggle-pwd:hover { color: #4f6ef7; background: rgba(79,110,247,0.05); }
-        .auth-btn { width: 100%; padding: 1rem; background: linear-gradient(135deg, #4f6ef7, #3b54e0); color: #fff; border: none; border-radius: 14px; font-size: 1.05rem; font-weight: 600; font-family: inherit; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 8px 25px rgba(79,110,247,0.35); margin-top: 0.5rem; }
-        .auth-btn:hover { transform: translateY(-3px); box-shadow: 0 12px 35px rgba(79,110,247,0.45); background: linear-gradient(135deg, #5b7af8, #4460e8); }
-        .auth-btn:active { transform: translateY(0); }
-        .auth-links { display: flex; justify-content: center; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-top: 1.8rem; font-size: 0.9rem; }
-        .auth-links a, .auth-links button { color: var(--auth-link); text-decoration: none; font-weight: 500; cursor: pointer; background: none; border: none; font-family: inherit; font-size: 0.9rem; transition: all 0.2s; padding: 0.4rem 0.6rem; border-radius: 8px; }
-        .auth-links a:hover, .auth-links button:hover { color: #2c44c8; background: rgba(79,110,247,0.08); }
-        .auth-links .divider { color: #d1d5db; user-select: none; }
-        .auth-error { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; padding: 0.9rem 1.2rem; border-radius: 12px; font-size: 0.85rem; text-align: center; display: none; animation: shake 0.4s ease; }
-        .auth-error.show { display: block; }
-        .auth-success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #16a34a; padding: 0.9rem 1.2rem; border-radius: 12px; font-size: 0.85rem; text-align: center; display: none; }
-        .auth-success.show { display: block; }
-        @keyframes shake { 0%,100%{transform:translateX(0);}20%{transform:translateX(-6px);}40%{transform:translateX(6px);}60%{transform:translateX(-4px);}80%{transform:translateX(4px);} }
-
-        .app-wrapper { display: none; min-height: 100vh; background: var(--bg-primary); color: var(--text-primary); position: relative; z-index: 1; }
-        .app-wrapper.active { display: block; }
-        .bg-pattern { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; background: radial-gradient(ellipse 80% 50% at 20% 0%, rgba(59,130,246,0.18) 0%, transparent 55%), radial-gradient(ellipse 60% 40% at 80% 100%, rgba(6,182,212,0.12) 0%, transparent 55%); }
-        .grid-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; background-image: linear-gradient(rgba(59,130,246,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,0.04) 1px, transparent 1px); background-size: 60px 60px; }
-
-        .app-navbar { position: sticky; top: 0; z-index: 50; background: rgba(17,24,39,0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-color); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 64px; }
-        .app-navbar .nav-brand { display: flex; align-items: center; gap: 0.8rem; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.2rem; color: var(--text-primary); }
-        .brand-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--accent-emerald); box-shadow: 0 0 15px rgba(16,185,129,0.7); animation: pulse-dot 2s infinite; }
-        @keyframes pulse-dot { 0%,100%{box-shadow:0 0 10px rgba(16,185,129,0.6);}50%{box-shadow:0 0 25px rgba(16,185,129,1);} }
-        .nav-actions { display: flex; align-items: center; gap: 1rem; }
-        .user-info { display: flex; align-items: center; gap: 0.6rem; color: var(--text-secondary); font-size: 0.9rem; padding: 0.6rem 1rem; border-radius: 10px; background: rgba(255,255,255,0.04); border: 1px solid transparent; transition: all 0.3s; }
-        .nav-btn { padding: 0.6rem 1.2rem; border-radius: 10px; border: 1px solid var(--border-color); background: transparent; color: var(--text-secondary); cursor: pointer; font-family: inherit; font-size: 0.9rem; font-weight: 500; transition: all 0.3s; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.4rem; }
-        .nav-btn:hover { transform: translateY(-1px); border-color: var(--accent-cyan); color: var(--text-primary); background: rgba(6,182,212,0.08); }
-        .logout-btn:hover { border-color: var(--accent-rose); color: var(--accent-rose); background: rgba(244,63,94,0.08); }
-        .history-btn { border-color: var(--accent-emerald); color: var(--accent-emerald); background: rgba(16,185,129,0.08); }
-        .history-btn:hover { background: rgba(16,185,129,0.18); color: #10b981; }
-
-        .main-container { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 3rem 2rem; }
-        .header { text-align: center; margin-bottom: 3.5rem; animation: fadeInDown 0.8s ease-out; }
-        .header-badge { display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.6rem 1.2rem; background: linear-gradient(135deg, rgba(59,130,246,0.25), rgba(6,182,212,0.25)); border: 1px solid rgba(59,130,246,0.35); border-radius: 9999px; font-size: 0.9rem; color: var(--accent-cyan); margin-bottom: 1.8rem; }
-        .header h1 { font-family: 'Space Grotesk', sans-serif; font-size: 2.6rem; font-weight: 700; background: linear-gradient(135deg, #f1f5f9 0%, #94a3b8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 0.8rem; }
-        .header p { color: var(--text-secondary); font-size: 1.1rem; }
-
-        .form-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 1.2rem; margin-bottom: 2rem; overflow: hidden; animation: fadeInUp 0.6s ease-out backwards; transition: all 0.3s ease; }
-        .form-card:hover { border-color: var(--accent-blue); box-shadow: 0 8px 30px rgba(59,130,246,0.1); }
-        .form-card:nth-child(1){animation-delay:0.1s;}.form-card:nth-child(2){animation-delay:0.2s;}.form-card:nth-child(3){animation-delay:0.3s;}.form-card:nth-child(4){animation-delay:0.4s;}.form-card:nth-child(5){animation-delay:0.5s;}.form-card:nth-child(6){animation-delay:0.6s;}
-        .card-header { display: flex; align-items: center; gap: 1.2rem; padding: 1.5rem 2rem; background: linear-gradient(135deg, rgba(59,130,246,0.12), transparent); border-bottom: 1px solid var(--border-color); cursor: pointer; transition: all 0.3s ease; user-select: none; }
-        .card-header:hover { background: linear-gradient(135deg, rgba(59,130,246,0.18), rgba(6,182,212,0.08)); }
-        .card-icon { width: 2.8rem; height: 2.8rem; display: flex; align-items: center; justify-content: center; border-radius: 1rem; flex-shrink: 0; }
-        .card-icon.blue { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
-        .card-icon.cyan { background: linear-gradient(135deg, #06b6d4, #0891b2); }
-        .card-icon.emerald { background: linear-gradient(135deg, #10b981, #059669); }
-        .card-icon.amber { background: linear-gradient(135deg, #f59e0b, #d97706); }
-        .card-icon.rose { background: linear-gradient(135deg, #f43f5e, #e11d48); }
-        .card-icon.purple { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
-        .card-title h3 { font-size: 1.2rem; font-weight: 600; color: var(--text-primary); }
-        .card-title span { font-size: 0.85rem; color: var(--text-muted); }
-        .toggle-icon { color: var(--text-muted); transition: transform 0.3s ease; }
-        .form-card.collapsed .toggle-icon { transform: rotate(-180deg); }
-        .form-card.collapsed .card-content { display: none; }
-        .card-content { padding: 2rem; }
-
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
-        .form-grid-2 { grid-template-columns: repeat(2, 1fr); }
-        @media (max-width: 768px) { .form-grid-2 { grid-template-columns: 1fr; } }
-        .form-group { display: flex; flex-direction: column; gap: 0.6rem; }
-        .form-group.full-width { grid-column: 1 / -1; }
-        .form-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; font-weight: 500; color: var(--text-secondary); }
-        .required { color: var(--accent-rose); font-size: 0.8rem; }
-        .form-input, .form-select, .form-textarea { width: 100%; padding: 0.9rem 1.2rem; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 0.6rem; color: var(--text-primary); font-size: 1rem; font-family: inherit; transition: all 0.3s ease; }
-        .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--accent-blue); box-shadow: 0 0 0 4px rgba(59,130,246,0.15); }
-        .form-input::placeholder, .form-textarea::placeholder { color: var(--text-muted); }
-        .form-select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.9rem center; background-size: 1.1rem; padding-right: 2.8rem; }
-        .form-textarea { min-height: 120px; resize: vertical; }
-
-        .action-bar { display: flex; justify-content: center; gap: 1.5rem; margin-top: 3rem; flex-wrap: wrap; }
-        .btn { display: inline-flex; align-items: center; gap: 0.8rem; padding: 1.1rem 2.2rem; border-radius: 1rem; font-size: 1.05rem; font-weight: 600; font-family: inherit; cursor: pointer; transition: all 0.3s ease; border: none; }
-        .btn-primary { background: linear-gradient(135deg, var(--accent-blue), #2563eb); color: white; box-shadow: 0 6px 25px rgba(59,130,246,0.35); }
-        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 10px 35px rgba(59,130,246,0.45); }
-        .btn-secondary { background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-color); }
-        .btn-secondary:hover { background: var(--bg-secondary); border-color: var(--accent-cyan); }
-        .btn-success { background: linear-gradient(135deg, var(--accent-emerald), #059669); color: white; box-shadow: 0 6px 25px rgba(16,185,129,0.35); }
-        .btn-success:hover { transform: translateY(-3px); box-shadow: 0 10px 35px rgba(16,185,129,0.45); }
-
-        .progress-bar { position: fixed; top: 64px; left: 0; width: 100%; height: 4px; background: var(--bg-secondary); z-index: 49; }
-        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan)); width: 0%; transition: width 0.4s ease; }
-
-        .toast { position: fixed; bottom: 2.5rem; right: 2.5rem; padding: 1.2rem 1.8rem; background: var(--bg-card); border: 1px solid var(--accent-emerald); border-radius: 1rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.8rem; box-shadow: 0 15px 45px rgba(0,0,0,0.4); transform: translateX(150%); transition: transform 0.4s ease; z-index: 1000; }
-        .toast.show { transform: translateX(0); }
-        .toast-icon { color: var(--accent-emerald); }
-
-        .history-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 150; display: none; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
-        .history-overlay.show { display: block; animation: fadeInOverlay 0.3s ease; }
-        .history-panel { position: fixed; right: 0; top: 0; height: 100vh; width: 450px; max-width: 90vw; background: #111827; border-left: 1px solid #2a3a52; z-index: 151; transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.4,0,0.2,1); display: flex; flex-direction: column; box-shadow: -15px 0 50px rgba(0,0,0,0.5); }
-        .history-panel.show { transform: translateX(0); }
-        .history-panel-header { padding: 1.5rem 2rem; border-bottom: 1px solid #2a3a52; display: flex; align-items: center; justify-content: space-between; background: rgba(17,24,39,0.98); backdrop-filter: blur(20px); position: sticky; top: 0; z-index: 2; }
-        .history-panel-header h3 { font-family: 'Space Grotesk', sans-serif; font-size: 1.3rem; font-weight: 700; color: #f1f5f9; display: flex; align-items: center; gap: 0.6rem; }
-        .history-panel-close { width: 36px; height: 36px; border-radius: 10px; border: 1px solid #2a3a52; background: transparent; color: #94a3b8; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; }
-        .history-panel-close:hover { background: rgba(244,63,94,0.12); border-color: #f43f5e; color: #f43f5e; }
-        .history-list { flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
-        .history-list::-webkit-scrollbar { width: 8px; }
-        .history-list::-webkit-scrollbar-thumb { background: #2a3a52; border-radius: 4px; }
-        .history-empty { text-align: center; padding: 4rem 1rem; color: #64748b; font-size: 1rem; }
-        .history-item { background: #1a2332; border: 1px solid #2a3a52; border-radius: 12px; padding: 1.2rem; transition: all 0.3s; cursor: pointer; }
-        .history-item:hover { border-color: #3b82f6; background: #1e2a3a; transform: translateX(-2px); }
-        .hi-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.6rem; }
-        .hi-time { font-size: 0.8rem; color: #64748b; font-family: 'Space Grotesk', monospace; }
-        .hi-project { font-weight: 600; color: #f1f5f9; font-size: 1rem; margin-bottom: 0.4rem; }
-        .hi-owner { font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.8rem; }
-        .hi-actions { display: flex; gap: 0.6rem; }
-        .hi-btn { flex: 1; padding: 0.5rem 0.8rem; border-radius: 8px; font-size: 0.8rem; font-weight: 500; cursor: pointer; border: 1px solid transparent; transition: all 0.3s; font-family: inherit; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; }
-        .hi-btn-load { background: rgba(59,130,246,0.15); border-color: rgba(59,130,246,0.35); color: #3b82f6; }
-        .hi-btn-load:hover { background: rgba(59,130,246,0.25); }
-        .hi-btn-delete { background: rgba(244,63,94,0.1); border-color: rgba(244,63,94,0.25); color: #f43f5e; }
-        .hi-btn-delete:hover { background: rgba(244,63,94,0.2); }
-        .history-footer { padding: 1.5rem 2rem; border-top: 1px solid #2a3a52; background: rgba(17,24,39,0.98); backdrop-filter: blur(20px); position: sticky; bottom: 0; }
-        .clear-all-btn { width: 100%; padding: 0.8rem; border-radius: 10px; border: 1px solid rgba(244,63,94,0.3); background: rgba(244,63,94,0.08); color: #f43f5e; cursor: pointer; font-family: inherit; font-size: 0.9rem; font-weight: 500; transition: all 0.3s; }
-        .clear-all-btn:hover { background: rgba(244,63,94,0.18); }
-        .record-count { text-align: center; font-size: 0.8rem; color: #64748b; margin-bottom: 0.8rem; }
-
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
-        .modal-dialog { background: #ffffff; border-radius: 20px; padding: 2.5rem; width: 90%; max-width: 440px; box-shadow: 0 40px 80px rgba(0,0,0,0.35); animation: modalSlideIn 0.4s ease; font-family: 'Noto Sans SC', 'Inter', sans-serif; }
-        @keyframes modalSlideIn { from { opacity: 0; transform: translateY(-40px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
-        .modal-dialog h3 { font-size: 1.5rem; font-weight: 700; color: #1a1a2e; margin-bottom: 0.5rem; font-family: 'Space Grotesk', sans-serif; }
-        .modal-subtitle { font-size: 0.9rem; color: #6b7280; margin-bottom: 2rem; }
-        .form-group-modal { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.2rem; }
-        .form-group-modal label { font-size: 0.9rem; font-weight: 600; color: #1a1a2e; }
-        .form-group-modal input { width: 100%; padding: 0.9rem 1.2rem; border: 1.5px solid #e5e7eb; border-radius: 12px; font-size: 1rem; font-family: inherit; background: #f9fafb; transition: all 0.3s; outline: none; }
-        .form-group-modal input:focus { border-color: #4f6ef7; box-shadow: 0 0 0 5px rgba(79,110,247,0.1); background: #fff; }
-        .modal-actions { display: flex; gap: 1rem; margin-top: 2rem; }
-        .modal-actions button { flex: 1; padding: 0.9rem; border-radius: 12px; font-weight: 600; font-family: inherit; cursor: pointer; font-size: 1rem; transition: all 0.3s; border: none; }
-        .btn-cancel { background: #f3f4f6; color: #4b5563; }
-        .btn-cancel:hover { background: #e5e7eb; }
-        .btn-confirm { background: linear-gradient(135deg, #4f6ef7, #3b54e0); color: #fff; box-shadow: 0 6px 20px rgba(79,110,247,0.35); }
-        .btn-confirm:hover { box-shadow: 0 10px 30px rgba(79,110,247,0.45); transform: translateY(-1px); }
-        .modal-error { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; padding: 0.8rem 1rem; border-radius: 10px; font-size: 0.85rem; text-align: center; margin-bottom: 1rem; display: none; }
-        .modal-error.show { display: block; }
-        .modal-success-msg { background: #f0fdf4; border: 1px solid #bbf7d0; color: #16a34a; padding: 0.8rem 1rem; border-radius: 10px; font-size: 0.85rem; text-align: center; margin-bottom: 1rem; display: none; }
-        .modal-success-msg.show { display: block; }
-
-        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeInOverlay { from { opacity: 0; } to { opacity: 1; } }
-
-        @media (max-width: 640px) {
-            .main-container { padding: 1.5rem 1rem; }
-            .header h1 { font-size: 1.8rem; }
-            .card-content { padding: 1.5rem 1rem; }
-            .action-bar { flex-direction: column; gap: 1rem; }
-            .btn { width: 100%; justify-content: center; }
-            .app-navbar { padding: 0 1rem; height: 56px; }
-            .history-panel { width: 100%; max-width: 100%; }
-            .auth-card { padding: 2rem 1.5rem; }
-        }
-    </style>
 </head>
-<body>
-    <div class="auth-wrapper" id="authWrapper">
-        <div class="auth-bg-decoration d1"></div><div class="auth-bg-decoration d2"></div><div class="auth-bg-decoration d3"></div>
-        <div class="auth-container" id="authContainer">
-            <div class="auth-card" id="loginCard">
-                <div class="auth-logo"><div class="logo-icon"><i data-lucide="cpu" style="width:28px;height:28px;color:#fff;"></i></div><h2>售前信息管理系统</h2><p>自动化集成商项目平台</p></div>
-                <div class="auth-error" id="loginError"></div>
-                <form class="auth-form" id="loginForm" autocomplete="off">
-                    <div class="auth-input-group"><label for="loginEmail">邮箱（登录账号）</label><div class="auth-input-wrapper"><i data-lucide="mail" class="input-icon"></i><input type="email" id="loginEmail" placeholder="请输入注册邮箱" required autocomplete="email"></div></div>
-                    <div class="auth-input-group"><label for="loginPassword">密码</label><div class="auth-input-wrapper"><i data-lucide="lock" class="input-icon"></i><input type="password" id="loginPassword" placeholder="请输入密码" required autocomplete="current-password"><button type="button" class="toggle-pwd" onclick="togglePassword('loginPassword', this)" tabindex="-1"><i data-lucide="eye-off" style="width:18px;height:18px;"></i></button></div></div>
-                    <button type="submit" class="auth-btn">登 录</button>
-                </form>
-                <div class="auth-links"><button onclick="showRegister()">注册</button><span class="divider">|</span><button onclick="showForgotPassword()">忘记密码？</button><span class="divider">|</span><button onclick="goToCloudInfo()">关于系统</button></div>
+<body class="bg-gray-100">
+    <!-- 登录/注册界面 -->
+    <div id="authPage" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
+            <h2 class="text-2xl font-bold text-center mb-6">售前信息管理系统</h2>
+            
+            <!-- 登录表单 -->
+            <div id="loginForm">
+                <div id="loginErr" class="text-red-500 text-sm mb-3 hidden"></div>
+                <input id="loginUser" placeholder="用户名" class="w-full p-3 border rounded-lg mb-3" required>
+                <input id="loginPwd" placeholder="密码" type="password" class="w-full p-3 border rounded-lg mb-4" required>
+                <button onclick="doLogin()" class="w-full bg-blue-600 text-white p-3 rounded-lg font-medium hover:bg-blue-700">登录</button>
+                <div class="text-center mt-4 text-sm text-gray-600">
+                    没有账号？<button onclick="showRegister()" class="text-blue-600">去注册</button>
+                </div>
             </div>
-            <div class="auth-card" id="registerCard" style="display:none;">
-                <div class="auth-logo"><div class="logo-icon"><i data-lucide="user-plus" style="width:28px;height:28px;color:#fff;"></i></div><h2>注册账号</h2><p>加入售前信息管理系统</p></div>
-                <div class="auth-error" id="registerError"></div><div class="auth-success" id="registerSuccess"></div>
-                <form class="auth-form" id="registerForm" autocomplete="off">
-                    <div class="auth-input-group"><label for="regEmail">邮箱（登录账号） <span style="color:#f43f5e;">*</span></label><div class="auth-input-wrapper"><i data-lucide="mail" class="input-icon"></i><input type="email" id="regEmail" placeholder="请输入邮箱地址" required autocomplete="email"></div></div>
-                    <div class="auth-input-group"><label for="regUsername">用户名 <span style="color:#f43f5e;">*</span></label><div class="auth-input-wrapper"><i data-lucide="user" class="input-icon"></i><input type="text" id="regUsername" placeholder="请输入用户名（3-20个字符）" required minlength="3" maxlength="20" autocomplete="username"></div></div>
-                    <div class="auth-input-group"><label for="regPhone">手机号（选填）</label><div class="auth-input-wrapper"><i data-lucide="phone" class="input-icon"></i><input type="tel" id="regPhone" placeholder="请输入手机号（可选）" autocomplete="tel"></div></div>
-                    <div class="auth-input-group"><label for="regPassword">密码 <span style="color:#f43f5e;">*</span></label><div class="auth-input-wrapper"><i data-lucide="lock" class="input-icon"></i><input type="password" id="regPassword" placeholder="请输入密码（至少6位）" required minlength="6" autocomplete="new-password"><button type="button" class="toggle-pwd" onclick="togglePassword('regPassword', this)" tabindex="-1"><i data-lucide="eye-off" style="width:18px;height:18px;"></i></button></div></div>
-                    <div class="auth-input-group"><label for="regConfirmPassword">确认密码 <span style="color:#f43f5e;">*</span></label><div class="auth-input-wrapper"><i data-lucide="lock-keyhole" class="input-icon"></i><input type="password" id="regConfirmPassword" placeholder="请再次输入密码" required minlength="6" autocomplete="new-password"></div></div>
-                    <button type="submit" class="auth-btn">注 册</button>
-                </form>
-                <div class="auth-links"><button onclick="showLogin()">已有账号？立即登录</button></div>
-            </div>
-            <div class="auth-card" id="forgotCard" style="display:none;">
-                <div class="auth-logo"><div class="logo-icon"><i data-lucide="key-round" style="width:28px;height:28px;color:#fff;"></i></div><h2>找回密码</h2><p>重置您的登录密码</p></div>
-                <div class="auth-error" id="forgotError"></div><div class="auth-success" id="forgotSuccess"></div>
-                <form class="auth-form" id="forgotForm" autocomplete="off">
-                    <div class="auth-input-group"><label for="forgotEmail">注册邮箱</label><div class="auth-input-wrapper"><i data-lucide="mail" class="input-icon"></i><input type="email" id="forgotEmail" placeholder="请输入注册时使用的邮箱" required></div></div>
-                    <button type="submit" class="auth-btn">发送重置邮件</button>
-                </form>
-                <div class="auth-links"><button onclick="showLogin()">想起密码了？返回登录</button></div>
+
+            <!-- 注册表单 -->
+            <div id="registerForm" class="hidden">
+                <div id="regErr" class="text-red-500 text-sm mb-3 hidden"></div>
+                <div id="regOk" class="text-green-500 text-sm mb-3 hidden"></div>
+                <input id="regUser" placeholder="设置用户名" class="w-full p-3 border rounded-lg mb-3" required>
+                <input id="regPwd" placeholder="设置密码（至少6位）" type="password" class="w-full p-3 border rounded-lg mb-3" required minlength="6">
+                <input id="regPwd2" placeholder="确认密码" type="password" class="w-full p-3 border rounded-lg mb-4" required>
+                <button onclick="doRegister()" class="w-full bg-green-600 text-white p-3 rounded-lg font-medium hover:bg-green-700">注册</button>
+                <div class="text-center mt-4 text-sm text-gray-600">
+                    已有账号？<button onclick="showLogin()" class="text-blue-600">返回登录</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="app-wrapper" id="appWrapper">
-        <div class="bg-pattern"></div><div class="grid-bg"></div>
-        <nav class="app-navbar">
-            <div class="nav-brand"><span class="brand-dot"></span><span>售前信息管理系统</span></div>
-            <div class="nav-actions">
-                <span class="user-info"><i data-lucide="user-circle" style="width:18px;height:18px;"></i><span id="displayUsername">用户</span></span>
-                <button class="nav-btn history-btn" onclick="openHistoryPanel()">📋 历史记录</button>
-                <button class="nav-btn" onclick="openChangePasswordModal()"><i data-lucide="key" style="width:16px;height:16px;"></i> 修改密码</button>
-                <button class="nav-btn logout-btn" onclick="logout()"><i data-lucide="log-out" style="width:16px;height:16px;"></i> 退出</button>
+    <!-- 主系统界面 -->
+    <div id="mainPage" class="hidden p-4 max-w-4xl mx-auto">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-xl font-bold">项目信息管理</h1>
+            <div class="flex items-center gap-3">
+                <span id="userDisplay" class="text-gray-600"></span>
+                <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">退出登录</button>
             </div>
-        </nav>
-        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-
-        <div class="history-overlay" id="historyOverlay" onclick="closeHistoryPanel()"></div>
-        <div class="history-panel" id="historyPanel">
-            <div class="history-panel-header"><h3>📋 导出历史记录</h3><button class="history-panel-close" onclick="closeHistoryPanel()"><i data-lucide="x" style="width:18px;height:18px;"></i></button></div>
-            <div class="history-list" id="historyList"><div class="history-empty"><div class="empty-icon">📭</div><div>暂无导出记录</div><div style="margin-top:0.4rem;font-size:0.9rem;">导出Excel后会自动保存到此处</div></div></div>
-            <div class="history-footer"><div class="record-count" id="recordCount">共 0 条记录</div><button class="clear-all-btn" onclick="clearAllHistory()">🗑️ 清空全部记录</button></div>
         </div>
 
-        <div class="main-container">
-            <header class="header">
-                <div class="header-badge"><i data-lucide="file-check" style="width:18px;height:18px;"></i><span>售前信息管理系统</span></div>
-                <h1>自动化集成商项目售前信息调整表</h1>
-                <p>全面记录项目关键信息，助力精准决策</p>
-            </header>
+        <form id="projectForm" class="bg-white rounded-xl p-6 shadow mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">项目名称 *</label>
+                    <input name="projectName" class="w-full p-3 border rounded-lg" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">业主单位</label>
+                    <input name="ownerName" class="w-full p-3 border rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">项目金额（万元）</label>
+                    <input name="amount" type="number" class="w-full p-3 border rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">项目阶段</label>
+                    <select name="stage" class="w-full p-3 border rounded-lg">
+                        <option value="信息收集">信息收集</option>
+                        <option value="方案设计">方案设计</option>
+                        <option value="投标报价">投标报价</option>
+                        <option value="已中标">已中标</option>
+                    </select>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">项目概述</label>
+                    <textarea name="summary" rows="3" class="w-full p-3 border rounded-lg"></textarea>
+                </div>
+            </div>
+        </form>
 
-            <form id="projectForm">
-                <div class="form-card" id="card-overview">
-                    <div class="card-header" onclick="toggleCard('card-overview')">
-                        <div class="card-icon blue"><i data-lucide="folder-kanban" style="width:22px;height:22px;color:#fff;"></i></div>
-                        <div class="card-title"><h3>项目概况</h3><span>项目基本信息与整体描述</span></div>
-                        <i data-lucide="chevron-down" class="toggle-icon" style="width:22px;height:22px;"></i>
-                    </div>
-                    <div class="card-content">
-                        <div class="form-grid">
-                            <div class="form-group"><label class="form-label">项目名称 <span class="required">*</span></label><input type="text" class="form-input" name="projectName" placeholder="请输入项目全称" required></div>
-                            <div class="form-group"><label class="form-label">项目编号</label><input type="text" class="form-input" name="projectCode" placeholder="如：PRJ-2024-001"></div>
-                            <div class="form-group"><label class="form-label">项目类型 <span class="required">*</span></label><select class="form-select" name="projectType" required><option value="">请选择项目类型</option><option value="智能制造产线">智能制造产线</option><option value="工业机器人集成">工业机器人集成</option><option value="PLC控制系统">PLC控制系统</option><option value="SCADA系统">SCADA系统</option><option value="MES系统">MES系统</option><option value="仓储物流自动化">仓储物流自动化</option><option value="视觉检测系统">视觉检测系统</option><option value="其他">其他</option></select></div>
-                            <div class="form-group"><label class="form-label">项目阶段</label><select class="form-select" name="projectStage"><option value="信息收集">信息收集</option><option value="方案设计">方案设计</option><option value="投标报价">投标报价</option><option value="合同谈判">合同谈判</option><option value="已中标">已中标</option><option value="已落标">已落标</option></select></div>
-                            <div class="form-group"><label class="form-label">预计合同金额（万元）</label><input type="number" class="form-input" name="contractAmount" placeholder="请输入金额" min="0"></div>
-                            <div class="form-group"><label class="form-label">项目来源</label><select class="form-select" name="projectSource"><option value="客户主动联系">客户主动联系</option><option value="销售拓展">销售拓展</option><option value="合作伙伴推荐">合作伙伴推荐</option><option value="招投标网站">招投标网站</option><option value="老客户复购">老客户复购</option></select></div>
-                            <div class="form-group"><label class="form-label">预计启动时间</label><input type="date" class="form-input" name="startDate"></div>
-                            <div class="form-group"><label class="form-label">预计交付时间</label><input type="date" class="form-input" name="endDate"></div>
-                            <div class="form-group full-width"><label class="form-label">项目概述</label><textarea class="form-textarea" name="projectSummary" placeholder="请详细描述项目背景、目标、范围等关键信息..."></textarea></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-card" id="card-owner">
-                    <div class="card-header" onclick="toggleCard('card-owner')">
-                        <div class="card-icon cyan"><i data-lucide="building-2" style="width:22px;height:22px;color:#fff;"></i></div>
-                        <div class="card-title"><h3>业主单位信息</h3><span>客户企业详细资料</span></div>
-                        <i data-lucide="chevron-down" class="toggle-icon" style="width:22px;height:22px;"></i>
-                    </div>
-                    <div class="card-content">
-                        <div class="form-grid">
-                            <div class="form-group"><label class="form-label">业主单位名称 <span class="required">*</span></label><input type="text" class="form-input" name="ownerName" placeholder="请输入企业全称" required></div>
-                            <div class="form-group"><label class="form-label">统一社会信用代码</label><input type="text" class="form-input" name="creditCode" placeholder="18位信用代码"></div>
-                            <div class="form-group"><label class="form-label">所属行业</label><select class="form-select" name="industry"><option value="">请选择行业</option><option value="汽车制造">汽车制造</option><option value="电子电器">电子电器</option><option value="食品饮料">食品饮料</option><option value="医药化工">医药化工</option><option value="金属加工">金属加工</option><option value="新能源">新能源</option><option value="物流仓储">物流仓储</option><option value="其他">其他</option></select></div>
-                            <div class="form-group"><label class="form-label">企业性质</label><select class="form-select" name="enterpriseType"><option value="">请选择</option><option value="国有企业">国有企业</option><option value="民营企业">民营企业</option><option value="外资企业">外资企业</option><option value="合资企业">合资企业</option><option value="上市公司">上市公司</option></select></div>
-                            <div class="form-group"><label class="form-label">企业规模</label><select class="form-select" name="companySize"><option value="">请选择</option><option value="大型企业">大型企业（500人以上）</option><option value="中型企业">中型企业（100-500人）</option><option value="小型企业">小型企业（100人以下）</option></select></div>
-                            <div class="form-group"><label class="form-label">年产值（亿元）</label><input type="number" class="form-input" name="annualOutput" placeholder="请输入" step="0.1" min="0"></div>
-                            <div class="form-group full-width"><label class="form-label">企业地址</label><input type="text" class="form-input" name="ownerAddress" placeholder="请输入详细地址"></div>
-                            <div class="form-group"><label class="form-label">联系电话</label><input type="tel" class="form-input" name="ownerPhone" placeholder="企业总机电话"></div>
-                            <div class="form-group"><label class="form-label">企业官网</label><input type="url" class="form-input" name="ownerWebsite" placeholder="https://"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-card" id="card-decision">
-                    <div class="card-header" onclick="toggleCard('card-decision')">
-                        <div class="card-icon emerald"><i data-lucide="users" style="width:22px;height:22px;color:#fff;"></i></div>
-                        <div class="card-title"><h3>关键决策人</h3><span>项目相关关键人员信息</span></div>
-                        <i data-lucide="chevron-down" class="toggle-icon" style="width:22px;height:22px;"></i>
-                    </div>
-                    <div class="card-content">
-                        <div class="form-grid">
-                            <div class="form-group"><label class="form-label">决策人姓名</label><input type="text" class="form-input" name="decision1Name" placeholder="最高决策人"></div>
-                            <div class="form-group"><label class="form-label">职务/部门</label><input type="text" class="form-input" name="decision1Position" placeholder="如：总经理、厂长"></div>
-                            <div class="form-group"><label class="form-label">联系电话</label><input type="tel" class="form-input" name="decision1Phone" placeholder="手机号码"></div>
-                            <div class="form-group"><label class="form-label">邮箱</label><input type="email" class="form-input" name="decision1Email" placeholder="电子邮箱"></div>
-                            <div class="form-group"><label class="form-label">决策影响力</label><select class="form-select" name="decision1Influence"><option value="">请选择</option><option value="最终决策">最终决策</option><option value="主要影响">主要影响</option><option value="一般影响">一般影响</option></select></div>
-                            <div class="form-group"><label class="form-label">关系状态</label><select class="form-select" name="decision1Relation"><option value="">请选择</option><option value="关系良好">关系良好</option><option value="一般接触">一般接触</option><option value="尚未接触">尚未接触</option><option value="关系紧张">关系紧张</option></select></div>
-                            <div class="form-group"><label class="form-label">技术负责人姓名</label><input type="text" class="form-input" name="decision2Name" placeholder="技术决策人"></div>
-                            <div class="form-group"><label class="form-label">职务/部门</label><input type="text" class="form-input" name="decision2Position" placeholder="如：技术总监、设备部长"></div>
-                            <div class="form-group"><label class="form-label">联系电话</label><input type="tel" class="form-input" name="decision2Phone" placeholder="手机号码"></div>
-                            <div class="form-group"><label class="form-label">邮箱</label><input type="email" class="form-input" name="decision2Email" placeholder="电子邮箱"></div>
-                            <div class="form-group"><label class="form-label">决策影响力</label><select class="form-select" name="decision2Influence"><option value="">请选择</option><option value="最终决策">最终决策</option><option value="主要影响">主要影响</option><option value="一般影响">一般影响</option></select></div>
-                            <div class="form-group"><label class="form-label">关系状态</label><select class="form-select" name="decision2Relation"><option value="">请选择</option><option value="关系良好">关系良好</option><option value="一般接触">一般接触</option><option value="尚未接触">尚未接触</option><option value="关系紧张">关系紧张</option></select></div>
-                            <div class="form-group"><label class="form-label">采购负责人姓名</label><input type="text" class="form-input" name="decision3Name" placeholder="商务决策人"></div>
-                            <div class="form-group"><label class="form-label">职务/部门</label><input type="text" class="form-input" name="decision3Position" placeholder="如：采购经理"></div>
-                            <div class="form-group"><label class="form-label">联系电话</label><input type="tel" class="form-input" name="decision3Phone" placeholder="手机号码"></div>
-                            <div class="form-group"><label class="form-label">邮箱</label><input type="email" class="form-input" name="decision3Email" placeholder="电子邮箱"></div>
-                            <div class="form-group"><label class="form-label">决策影响力</label><select class="form-select" name="decision3Influence"><option value="">请选择</option><option value="最终决策">最终决策</option><option value="主要影响">主要影响</option><option value="一般影响">一般影响</option></select></div>
-                            <div class="form-group"><label class="form-label">关系状态</label><select class="form-select" name="decision3Relation"><option value="">请选择</option><option value="关系良好">关系良好</option><option value="一般接触">一般接触</option><option value="尚未接触">尚未接触</option><option value="关系紧张">关系紧张</option></select></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-card" id="card-tech">
-                    <div class="card-header" onclick="toggleCard('card-tech')">
-                        <div class="card-icon amber"><i data-lucide="file-text" style="width:22px;height:22px;color:#fff;"></i></div>
-                        <div class="card-title"><h3>技术资料</h3><span>项目技术文档与需求说明</span></div>
-                        <i data-lucide="chevron-down" class="toggle-icon" style="width:22px;height:22px;"></i>
-                    </div>
-                    <div class="card-content">
-                        <div class="form-grid">
-                            <div class="form-group"><label class="form-label">技术规格书</label><select class="form-select" name="techSpec"><option value="未提供">未提供</option><option value="已提供-初版">已提供-初版</option><option value="已提供-终版">已提供-终版</option><option value="需进一步确认">需进一步确认</option></select></div>
-                            <div class="form-group"><label class="form-label">图纸资料</label><select class="form-select" name="drawings"><option value="未提供">未提供</option><option value="已提供-部分">已提供-部分</option><option value="已提供-完整">已提供-完整</option><option value="需进一步确认">需进一步确认</option></select></div>
-                            <div class="form-group"><label class="form-label">现场勘测</label><select class="form-select" name="siteSurvey"><option value="未进行">未进行</option><option value="已预约">已预约</option><option value="已完成">已完成</option><option value="需复测">需复测</option></select></div>
-                            <div class="form-group"><label class="form-label">技术交流</label><select class="form-select" name="techExchange"><option value="未进行">未进行</option><option value="已进行1次">已进行1次</option><option value="已进行2次">已进行2次</option><option value="已进行3次及以上">已进行3次及以上</option></select></div>
-                            <div class="form-group full-width"><label class="form-label">技术要求说明</label><textarea class="form-textarea" name="techRequirements" placeholder="请详细描述技术要求、工艺流程、性能指标等..."></textarea></div>
-                            <div class="form-group full-width"><label class="form-label">现有设备/系统情况</label><textarea class="form-textarea" name="existingEquipment" placeholder="描述客户现有设备、系统情况，是否需要对接或改造..."></textarea></div>
-                            <div class="form-group"><label class="form-label">自动化程度要求</label><select class="form-select" name="automationLevel"><option value="">请选择</option><option value="全自动">全自动</option><option value="半自动">半自动</option><option value="人机协作">人机协作</option><option value="辅助人工">辅助人工</option></select></div>
-                            <div class="form-group"><label class="form-label">通讯协议要求</label><input type="text" class="form-input" name="protocol" placeholder="如：Profinet, EtherCAT, Modbus"></div>
-                            <div class="form-group"><label class="form-label">安全等级要求</label><select class="form-select" name="safetyLevel"><option value="">请选择</option><option value="SIL2">SIL2</option><option value="SIL3">SIL3</option><option value="PLd">PLd</option><option value="PLe">PLe</option><option value="无特殊要求">无特殊要求</option></select></div>
-                            <div class="form-group"><label class="form-label">验收标准</label><input type="text" class="form-input" name="acceptanceStd" placeholder="如：GB/T 19001"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-card" id="card-equipment">
-                    <div class="card-header" onclick="toggleCard('card-equipment')">
-                        <div class="card-icon rose"><i data-lucide="cpu" style="width:22px;height:22px;color:#fff;"></i></div>
-                        <div class="card-title"><h3>关键设备品牌要求</h3><span>客户指定或倾向的设备品牌</span></div>
-                        <i data-lucide="chevron-down" class="toggle-icon" style="width:22px;height:22px;"></i>
-                    </div>
-                    <div class="card-content">
-                        <div class="form-grid">
-                            <div class="form-group"><label class="form-label">PLC品牌要求</label><select class="form-select" name="plcBrand"><option value="">请选择</option><option value="西门子">西门子</option><option value="三菱">三菱</option><option value="欧姆龙">欧姆龙</option><option value="AB(罗克韦尔)">AB(罗克韦尔)</option><option value="施耐德">施耐德</option><option value="倍福">倍福</option><option value="基恩士">基恩士</option><option value="台达">台达</option><option value="无特殊要求">无特殊要求</option></select></div>
-                            <div class="form-group"><label class="form-label">HMI品牌要求</label><select class="form-select" name="hmiBrand"><option value="">请选择</option><option value="西门子">西门子</option><option value="威纶通">威纶通</option><option value="三菱">三菱</option><option value="欧姆龙">欧姆龙</option><option value="Proface">Proface</option><option value="无特殊要求">无特殊要求</option></select></div>
-                            <div class="form-group"><label class="form-label">机器人品牌要求</label><select class="form-select" name="robotBrand"><option value="">请选择</option><option value="发那科">发那科(FANUC)</option><option value="ABB">ABB</option><option value="库卡">库卡(KUKA)</option><option value="安川">安川(YASKAWA)</option><option value="爱普生">爱普生(EPSON)</option><option value="川崎">川崎(KAWASAKI)</option><option value="国产机器人">国产机器人</option><option value="无特殊要求">无特殊要求</option></select></div>
-                            <div class="form-group"><label class="form-label">伺服品牌要求</label><select class="form-select" name="servoBrand"><option value="">请选择</option><option value="西门子">西门子</option><option value="三菱">三菱</option><option value="安川">安川</option><option value="松下">松下</option><option value="欧姆龙">欧姆龙</option><option value="汇川">汇川</option><option value="无特殊要求">无特殊要求</option></select></div>
-                            <div class="form-group"><label class="form-label">变频器品牌要求</label><select class="form-select" name="inverterBrand"><option value="">请选择</option><option value="西门子">西门子</option><option value="ABB">ABB</option><option value="丹佛斯">丹佛斯</option><option value="施耐德">施耐德</option><option value="三菱">三菱</option><option value="汇川">汇川</option><option value="无特殊要求">无特殊要求</option></select></div>
-                            <div class="form-group"><label class="form-label">视觉系统品牌</label><select class="form-select" name="visionBrand"><option value="">请选择</option><option value="基恩士">基恩士</option><option value="康耐视">康耐视</option><option value="海康机器人">海康机器人</option><option value="欧姆龙">欧姆龙</option><option value="邦纳">邦纳</option><option value="无特殊要求">无特殊要求</option></select></div>
-                            <div class="form-group"><label class="form-label">传感器品牌要求</label><input type="text" class="form-input" name="sensorBrand" placeholder="如：SICK, 倍加福, 基恩士"></div>
-                            <div class="form-group"><label class="form-label">气动元件品牌</label><select class="form-select" name="pneumaticBrand"><option value="">请选择</option><option value="FESTO">FESTO</option><option value="SMC">SMC</option><option value="亚德客">亚德客</option><option value="气立可">气立可</option><option value="无特殊要求">无特殊要求</option></select></div>
-                            <div class="form-group full-width"><label class="form-label">其他设备品牌要求</label><textarea class="form-textarea" name="otherBrands" placeholder="请描述其他关键设备的品牌要求，如：电机、减速机、导轨、丝杆等..."></textarea></div>
-                            <div class="form-group full-width"><label class="form-label">品牌指定原因</label><textarea class="form-textarea" name="brandReason" placeholder="客户指定品牌的原因，如：现有设备统一、采购协议、技术要求等..."></textarea></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-card" id="card-business">
-                    <div class="card-header" onclick="toggleCard('card-business')">
-                        <div class="card-icon purple"><i data-lucide="briefcase" style="width:22px;height:22px;color:#fff;"></i></div>
-                        <div class="card-title"><h3>商务手续</h3><span>招投标、合同及付款相关信息</span></div>
-                        <i data-lucide="chevron-down" class="toggle-icon" style="width:22px;height:22px;"></i>
-                    </div>
-                    <div class="card-content">
-                        <div class="form-grid">
-                            <div class="form-group"><label class="form-label">采购方式</label><select class="form-select" name="purchaseMethod"><option value="">请选择</option><option value="公开招标">公开招标</option><option value="邀请招标">邀请招标</option><option value="竞争性谈判">竞争性谈判</option><option value="单一来源">单一来源</option><option value="询价比价">询价比价</option><option value="直接委托">直接委托</option></select></div>
-                            <div class="form-group"><label class="form-label">投标截止日期</label><input type="date" class="form-input" name="bidDeadline"></div>
-                            <div class="form-group"><label class="form-label">投标保证金（万元）</label><input type="number" class="form-input" name="bidBond" placeholder="请输入" step="0.01" min="0"></div>
-                            <div class="form-group"><label class="form-label">履约保证金比例（%）</label><input type="number" class="form-input" name="performanceBond" placeholder="如：5、10" step="0.1" min="0" max="100"></div>
-                            <div class="form-group"><label class="form-label">质保金比例（%）</label><input type="number" class="form-input" name="warrantyBond" placeholder="如：5、10" step="0.1" min="0" max="100"></div>
-                            <div class="form-group"><label class="form-label">质保期（月）</label><input type="number" class="form-input" name="warrantyPeriod" placeholder="如：12、24" min="0"></div>
-                            <div class="form-group full-width"><label class="form-label">付款方式</label><textarea class="form-textarea" name="paymentTerms" placeholder="请描述付款节点和比例，如：预付30%，发货30%，验收30%，质保10%..."></textarea></div>
-                            <div class="form-group"><label class="form-label">发票类型</label><select class="form-select" name="invoiceType"><option value="">请选择</option><option value="增值税专用发票-13%">增值税专用发票-13%</option><option value="增值税专用发票-9%">增值税专用发票-9%</option><option value="增值税专用发票-6%">增值税专用发票-6%</option><option value="增值税普通发票">增值税普通发票</option></select></div>
-                            <div class="form-group"><label class="form-label">是否需要履约保函</label><select class="form-select" name="needGuarantee"><option value="">请选择</option><option value="是">是</option><option value="否">否</option></select></div>
-                            <div class="form-group"><label class="form-label">竞争对手数量</label><select class="form-select" name="competitorCount"><option value="">请选择</option><option value="独家">独家</option><option value="2-3家">2-3家</option><option value="4-5家">4-5家</option><option value="5家以上">5家以上</option><option value="不确定">不确定</option></select></div>
-                            <div class="form-group"><label class="form-label">中标概率评估</label><select class="form-select" name="winProbability"><option value="">请选择</option><option value="高(>70%)">高(>70%)</option><option value="中(40%-70%)">中(40%-70%)</option><option value="低(<40%)">低(<40%)</option><option value="不确定">不确定</option></select></div>
-                            <div class="form-group full-width"><label class="form-label">竞争对手信息</label><textarea class="form-textarea" name="competitorInfo" placeholder="请描述已知竞争对手情况，包括公司名称、优势劣势分析..."></textarea></div>
-                            <div class="form-group full-width"><label class="form-label">其他商务条款</label><textarea class="form-textarea" name="otherTerms" placeholder="其他需要说明的商务条款，如：交货期要求、违约责任、知识产权等..."></textarea></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="action-bar">
-                    <button type="button" class="btn btn-secondary" onclick="resetForm()"><i data-lucide="rotate-ccw" style="width:22px;height:22px;"></i><span>重置表单</span></button>
-                    <button type="button" class="btn btn-primary" onclick="previewData()"><i data-lucide="eye" style="width:22px;height:22px;"></i><span>预览数据</span></button>
-                    <button type="button" class="btn btn-success" onclick="exportToExcel()"><i data-lucide="download" style="width:22px;height:22px;"></i><span>导出Excel并保存记录</span></button>
-                </div>
-            </form>
+        <div class="flex gap-3">
+            <button onclick="resetForm()" class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600">重置表单</button>
+            <button onclick="exportExcel()" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700">导出Excel</button>
         </div>
     </div>
-
-    <div class="modal-overlay" id="changePasswordModal" style="display:none;">
-        <div class="modal-dialog">
-            <h3>修改密码</h3><p class="modal-subtitle">请验证旧密码并设置新密码</p>
-            <div class="modal-error" id="modalError"></div><div class="modal-success-msg" id="modalSuccess"></div>
-            <form id="changePasswordForm" autocomplete="off">
-                <div class="form-group-modal"><label for="oldPassword">旧密码</label><input type="password" id="oldPassword" placeholder="请输入旧密码" required autocomplete="current-password"></div>
-                <div class="form-group-modal"><label for="newPassword">新密码</label><input type="password" id="newPassword" placeholder="请输入新密码（至少6位）" required minlength="6" autocomplete="new-password"></div>
-                <div class="form-group-modal"><label for="confirmNewPassword">确认新密码</label><input type="password" id="confirmNewPassword" placeholder="请再次输入新密码" required minlength="6" autocomplete="new-password"></div>
-                <div class="modal-actions"><button type="button" class="btn-cancel" onclick="closeChangePasswordModal()">取消</button><button type="submit" class="btn-confirm">确认修改</button></div>
-            </form>
-        </div>
-    </div>
-
-    <div class="toast" id="toast"><i data-lucide="check-circle" class="toast-icon" style="width:22px;height:22px;"></i><span id="toastMessage">操作成功</span></div>
 
     <script>
-        // ========== 修复完成：仅初始化1次Supabase，无重复声明 ==========
-        const SUPABASE_URL = 'https://ulrrbwvxuihrslweqrle.supabase.co'
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVscnJid3Z4dWlocnNsd2VxcmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNTU2MjgsImV4cCI6MjA5MjYzMTYyOH0.FPXSLccJOopap323fjND8Xmtoal_cg8ir7wYt2Faol8'
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        const MAX_HISTORY = 50;
+        // ========== 你的Supabase配置（不用改） ==========
+        const SUPABASE_URL = "https://ulrrbwvxuihrslweqrle.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVscnJid3Z4dWlocnNsd2VxcmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNTU2MjgsImV4cCI6MjA5MjYzMTYyOH0.FPXSLccJOopap323fjND8Xmtoal_cg8ir7wYt2Faol8";
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // ========== 认证函数 ==========
-        async function signUp(email, password, username, phone) {
-            const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { username, phone: phone || '' } } });
-            if (error) throw error; return data;
-        }
-        async function signIn(email, password) {
-            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-            if (error) throw error; return data;
-        }
-        async function signOutUser() { await supabase.auth.signOut(); }
-        async function getCurrentUser() {
-            const { data: { user }, error } = await supabase.auth.getUser();
-            if (error) throw error; return user;
-        }
-        async function changePassword(oldPassword, newPassword) {
-            const user = await getCurrentUser();
-            if (!user || !user.email) throw new Error('无法获取用户信息');
-            const { error: signInError } = await supabase.auth.signInWithPassword({ email: user.email, password: oldPassword });
-            if (signInError) throw new Error('旧密码错误');
-            const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
-            if (updateError) throw updateError;
-        }
-        async function resetPassword(email) {
-            const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + window.location.pathname + '?reset=true' });
-            if (error) throw error;
-        }
-
-        // ========== 历史记录函数 ==========
-        async function addHistoryRecord(projectName, exportData) {
-            const user = await getCurrentUser();
-            if (!user) throw new Error('未登录');
-            const { error } = await supabase.from('history_records').insert({ user_id: user.id, project_name: projectName, export_data: exportData });
-            if (error) throw error;
-        }
-        async function fetchHistoryRecords() {
-            const user = await getCurrentUser();
-            if (!user) return [];
-            const { data, error } = await supabase.from('history_records').select('*').order('created_at', { ascending: false }).limit(MAX_HISTORY);
-            if (error) throw error; return data;
-        }
-        async function deleteHistoryRecordById(recordId) {
-            const { error } = await supabase.from('history_records').delete().eq('id', recordId);
-            if (error) throw error;
-        }
-        async function deleteAllHistoryForUser() {
-            const user = await getCurrentUser();
-            if (!user) throw new Error('未登录');
-            const { error } = await supabase.from('history_records').delete().eq('user_id', user.id);
-            if (error) throw error;
-        }
-
-        // ========== UI 函数 ==========
-        function showLogin() {
-            document.getElementById('loginCard').style.display = '';
-            document.getElementById('registerCard').style.display = 'none';
-            document.getElementById('forgotCard').style.display = 'none';
-            ['loginError','registerError','registerSuccess','forgotError','forgotSuccess'].forEach(id => document.getElementById(id).classList.remove('show'));
-            document.getElementById('loginForm').reset();
-            document.getElementById('registerForm').reset();
-            document.getElementById('forgotForm').reset();
-            reinitAuthIcons();
-        }
+        // ========== 界面切换 ==========
         function showRegister() {
-            document.getElementById('loginCard').style.display = 'none';
-            document.getElementById('registerCard').style.display = '';
-            document.getElementById('forgotCard').style.display = 'none';
-            ['loginError','registerError','registerSuccess','forgotError','forgotSuccess'].forEach(id => document.getElementById(id).classList.remove('show'));
-            reinitAuthIcons();
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.remove('hidden');
         }
-        function showForgotPassword() {
-            document.getElementById('loginCard').style.display = 'none';
-            document.getElementById('registerCard').style.display = 'none';
-            document.getElementById('forgotCard').style.display = '';
-            ['loginError','registerError','registerSuccess','forgotError','forgotSuccess'].forEach(id => document.getElementById(id).classList.remove('show'));
-            reinitAuthIcons();
+        function showLogin() {
+            document.getElementById('registerForm').classList.add('hidden');
+            document.getElementById('loginForm').classList.remove('hidden');
         }
-        function goToCloudInfo() {
-            alert('关于售前信息管理系统\n\n本系统用于自动化集成商项目的售前信息登记与管理。使用邮箱注册后，数据将安全保存在云端。');
+
+        // ========== 注册（纯用户名+密码，自动生成假邮箱） ==========
+        async function doRegister() {
+            const username = document.getElementById('regUser').value.trim();
+            const password = document.getElementById('regPwd').value;
+            const password2 = document.getElementById('regPwd2').value;
+            const errEl = document.getElementById('regErr');
+            const okEl = document.getElementById('regOk');
+
+            errEl.classList.add('hidden');
+            okEl.classList.add('hidden');
+
+            if (!username || !password) {
+                errEl.textContent = '用户名和密码不能为空';
+                errEl.classList.remove('hidden');
+                return;
+            }
+            if (password !== password2) {
+                errEl.textContent = '两次密码不一致';
+                errEl.classList.remove('hidden');
+                return;
+            }
+            if (password.length < 6) {
+                errEl.textContent = '密码至少6位';
+                errEl.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                // 自动生成假邮箱，绕过邮箱验证
+                const fakeEmail = `${username}@user.local`;
+                const { error } = await supabase.auth.signUp({
+                    email: fakeEmail,
+                    password: password,
+                    options: {
+                        data: { username: username } // 保存用户名
+                    }
+                });
+
+                if (error) throw error;
+
+                okEl.textContent = '注册成功！2秒后返回登录';
+                okEl.classList.remove('hidden');
+                setTimeout(showLogin, 2000);
+            } catch (err) {
+                errEl.textContent = err.message || '注册失败';
+                errEl.classList.remove('hidden');
+            }
         }
-        function togglePassword(inputId, btn) {
-            const input = document.getElementById(inputId);
-            const icon = btn.querySelector('[data-lucide]') || btn.querySelector('svg');
-            if (input.type === 'password') { input.type = 'text'; icon.setAttribute('data-lucide', 'eye'); }
-            else { input.type = 'password'; icon.setAttribute('data-lucide', 'eye-off'); }
-            lucide.createIcons();
+
+        // ========== 登录（纯用户名+密码） ==========
+        async function doLogin() {
+            const username = document.getElementById('loginUser').value.trim();
+            const password = document.getElementById('loginPwd').value;
+            const errEl = document.getElementById('loginErr');
+
+            errEl.classList.add('hidden');
+
+            if (!username || !password) {
+                errEl.textContent = '用户名和密码不能为空';
+                errEl.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                // 自动把用户名拼成假邮箱登录
+                const fakeEmail = `${username}@user.local`;
+                const { error } = await supabase.auth.signInWithPassword({
+                    email: fakeEmail,
+                    password: password
+                });
+
+                if (error) throw error;
+            } catch (err) {
+                errEl.textContent = '用户名或密码错误';
+                errEl.classList.remove('hidden');
+            }
         }
-        function reinitAuthIcons() { setTimeout(() => lucide.createIcons(), 50); }
-        function reinitAllIcons() { lucide.createIcons(); }
-        function toggleCard(cardId) {
-            const card = document.getElementById(cardId);
-            card.classList.toggle('collapsed');
-        }
-        function updateProgress() {
-            const form = document.getElementById('projectForm');
-            const inputs = form.querySelectorAll('input[required], select[required]');
-            const total = inputs.length;
-            let filled = 0;
-            inputs.forEach(input => { if(input.value.trim() !== '') filled++; });
-            const percent = total > 0 ? (filled/total)*100 : 0;
-            document.getElementById('progressFill').style.width = percent + '%';
-        }
+
+        // ========== 主系统功能 ==========
         function resetForm() {
-            if(confirm('确定要重置表单吗？所有填写内容将被清空！')) {
+            if (confirm('确定要重置表单吗？')) {
                 document.getElementById('projectForm').reset();
-                updateProgress();
-                showToast('表单已重置');
             }
         }
-        function previewData() {
+
+        function exportExcel() {
             const formData = new FormData(document.getElementById('projectForm'));
-            let preview = '📋 项目数据预览\n\n';
-            for(let [key, value] of formData.entries()) {
-                if(value.trim() !== '') preview += `${key}：${value}\n`;
+            const projectName = formData.get('projectName') || '未命名项目';
+            
+            const data = [['字段', '内容']];
+            for (const [key, value] of formData.entries()) {
+                data.push([key, value]);
             }
-            alert(preview || '暂无填写数据');
-        }
-        async function exportToExcel() {
-            const formData = new FormData(document.getElementById('projectForm'));
-            const data = [];
-            const projectName = document.querySelector('[name=projectName]').value || '未命名项目';
-            data.push(['字段名称', '填写内容']);
-            for(let [key, value] of formData.entries()) { data.push([key, value]); }
+
             const ws = XLSX.utils.aoa_to_sheet(data);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, '项目信息');
-            XLSX.writeFile(wb, `${projectName}_售前信息.xlsx`);
-            
-            try {
-                await addHistoryRecord(projectName, JSON.stringify(Object.fromEntries(formData)));
-                showToast('Excel导出成功，记录已保存！');
-                updateHistoryPanel();
-            } catch (e) {
-                showToast('导出成功，历史记录未保存（请检查Supabase表配置）');
-            }
-            updateProgress();
+            XLSX.writeFile(wb, `${projectName}_项目信息.xlsx`);
+            alert('导出成功！');
         }
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toastMessage').textContent = msg;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
-        }
-        function openHistoryPanel() {
-            document.getElementById('historyOverlay').classList.add('show');
-            document.getElementById('historyPanel').classList.add('show');
-        }
-        function closeHistoryPanel() {
-            document.getElementById('historyOverlay').classList.remove('show');
-            document.getElementById('historyPanel').classList.remove('show');
-        }
-        async function clearAllHistory() {
-            if(!confirm('确定要清空所有历史记录吗？此操作不可恢复！')) return;
-            try {
-                await deleteAllHistoryForUser();
-                showToast('已清空所有历史记录');
-                updateHistoryPanel();
-            } catch (e) {
-                showToast('清空失败');
-            }
-        }
-        async function updateHistoryPanel() {
-            const list = document.getElementById('historyList');
-            const countEl = document.getElementById('recordCount');
-            try {
-                const records = await fetchHistoryRecords();
-                countEl.textContent = `共 ${records.length} 条记录`;
-                if(records.length === 0) {
-                    list.innerHTML = `<div class="history-empty"><div class="empty-icon">📭</div><div>暂无导出记录</div><div style="margin-top:0.4rem;font-size:0.9rem;">导出Excel后会自动保存到此处</div></div>`;
-                    return;
-                }
-                let html = '';
-                records.forEach(item => {
-                    const time = new Date(item.created_at).toLocaleString();
-                    html += `
-                    <div class="history-item">
-                        <div class="hi-header"><span class="hi-time">${time}</span></div>
-                        <div class="hi-project">${item.project_name}</div>
-                        <div class="hi-actions">
-                            <button class="hi-btn hi-btn-load" onclick="loadHistoryRecord('${item.id}')">📥 加载数据</button>
-                            <button class="hi-btn hi-btn-delete" onclick="deleteHistoryRecord('${item.id}')">🗑️ 删除</button>
-                        </div>
-                    </div>`;
-                });
-                list.innerHTML = html;
-            } catch (e) {
-                list.innerHTML = `<div class="history-empty">请先创建Supabase历史记录表</div>`;
-            }
-        }
-        async function loadHistoryRecord(id) {
-            try {
-                const records = await fetchHistoryRecords();
-                const record = records.find(r => r.id === id);
-                if(!record) return;
-                const data = JSON.parse(record.export_data);
-                const form = document.getElementById('projectForm');
-                for(let key in data) {
-                    const input = form.querySelector(`[name=${key}]`);
-                    if(input) input.value = data[key];
-                }
-                updateProgress();
-                closeHistoryPanel();
-                showToast('数据加载成功！');
-            } catch (e) {
-                showToast('加载失败');
-            }
-        }
-        async function deleteHistoryRecord(id) {
-            if(!confirm('确定删除该条记录？')) return;
-            try {
-                await deleteHistoryRecordById(id);
-                showToast('记录已删除');
-                updateHistoryPanel();
-            } catch (e) {
-                showToast('删除失败');
-            }
-        }
-        function openChangePasswordModal() {
-            document.getElementById('changePasswordModal').style.display = 'flex';
-            document.getElementById('changePasswordForm').reset();
-            document.getElementById('modalError').classList.remove('show');
-            document.getElementById('modalSuccess').classList.remove('show');
-        }
-        function closeChangePasswordModal() {
-            document.getElementById('changePasswordModal').style.display = 'none';
-        }
-        function switchToApp(user) {
-            document.getElementById('authWrapper').style.display = 'none';
-            document.getElementById('appWrapper').classList.add('active');
-            document.getElementById('displayUsername').textContent = user.user_metadata?.username || user.email;
-            document.body.style.background = '#0a0f1a';
-            updateProgress();
-            updateHistoryPanel();
-            reinitAllIcons();
-        }
-        function switchToAuth() {
-            document.getElementById('authWrapper').style.display = '';
-            document.getElementById('appWrapper').classList.remove('active');
-            document.body.style.background = '';
-            showLogin();
-            reinitAllIcons();
-        }
-        async function logout() {
+
+        function logout() {
             if (confirm('确定要退出登录吗？')) {
-                await signOutUser();
-                document.getElementById('projectForm').reset();
-                document.getElementById('progressFill').style.width = '0%';
-                switchToAuth();
+                supabase.auth.signOut();
+                document.getElementById('authPage').classList.remove('hidden');
+                document.getElementById('mainPage').classList.add('hidden');
             }
         }
 
-        // ========== 表单提交 ==========
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const email = document.getElementById('loginEmail').value.trim();
-            const password = document.getElementById('loginPassword').value;
-            const errorEl = document.getElementById('loginError');
-            errorEl.classList.remove('show');
-            try { await signIn(email, password); }
-            catch (err) { errorEl.textContent = '邮箱或密码错误'; errorEl.classList.add('show'); }
-        });
-        document.getElementById('registerForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const email = document.getElementById('regEmail').value.trim();
-            const username = document.getElementById('regUsername').value.trim();
-            const phone = document.getElementById('regPhone').value.trim();
-            const password = document.getElementById('regPassword').value;
-            const confirmPassword = document.getElementById('regConfirmPassword').value;
-            const errorEl = document.getElementById('registerError');
-            const successEl = document.getElementById('registerSuccess');
-            errorEl.classList.remove('show'); successEl.classList.remove('show');
-            if (password !== confirmPassword) { errorEl.textContent = '两次密码不一致'; errorEl.classList.add('show'); return; }
-            try {
-                await signUp(email, password, username, phone);
-                successEl.textContent = '注册成功！2秒后返回登录';
-                successEl.classList.add('show');
-                setTimeout(showLogin, 2000);
-            } catch (err) {
-                errorEl.textContent = err.message || '注册失败';
-                errorEl.classList.add('show');
+        // ========== 监听登录状态 ==========
+        supabase.auth.onAuthStateChange((event, session) => {
+            if (session?.user) {
+                // 登录成功，切换到主界面
+                document.getElementById('authPage').classList.add('hidden');
+                document.getElementById('mainPage').classList.remove('hidden');
+                document.getElementById('userDisplay').textContent = `当前用户：${session.user.user_metadata.username}`;
+            } else {
+                // 未登录，显示登录界面
+                document.getElementById('authPage').classList.remove('hidden');
+                document.getElementById('mainPage').classList.add('hidden');
             }
-        });
-        document.getElementById('forgotForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const email = document.getElementById('forgotEmail').value.trim();
-            const errorEl = document.getElementById('forgotError');
-            const successEl = document.getElementById('forgotSuccess');
-            try {
-                await resetPassword(email);
-                successEl.textContent = '重置邮件已发送，请查收！';
-                successEl.classList.add('show');
-            } catch (err) {
-                errorEl.textContent = '发送失败，请检查邮箱';
-                errorEl.classList.add('show');
-            }
-        });
-        document.getElementById('changePasswordForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const oldPwd = document.getElementById('oldPassword').value;
-            const newPwd = document.getElementById('newPassword').value;
-            const confirmPwd = document.getElementById('confirmNewPassword').value;
-            const errorEl = document.getElementById('modalError');
-            const successEl = document.getElementById('modalSuccess');
-            errorEl.classList.remove('show'); successEl.classList.remove('show');
-            if(newPwd !== confirmPwd) { errorEl.textContent = '新密码不一致'; errorEl.classList.add('show'); return; }
-            try {
-                await changePassword(oldPwd, newPwd);
-                successEl.textContent = '密码修改成功！';
-                successEl.classList.add('show');
-                setTimeout(closeChangePasswordModal, 1500);
-            } catch (err) {
-                errorEl.textContent = err.message || '修改失败';
-                errorEl.classList.add('show');
-            }
-        });
-
-        // ========== 初始化 ==========
-        document.addEventListener('DOMContentLoaded', () => {
-            lucide.createIcons();
-            supabase.auth.onAuthStateChange((event, session) => {
-                if(session?.user) switchToApp(session.user);
-                else switchToAuth();
-            });
-            document.getElementById('projectForm').addEventListener('input', updateProgress);
-            document.querySelectorAll('.form-card').forEach(card => card.classList.add('collapsed'));
         });
     </script>
 </body>
