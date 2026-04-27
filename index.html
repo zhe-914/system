@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>自动化集成商 - 售前信息管理系统</title>
-    <!-- 移除 Supabase SDK，改用 localStorage -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
@@ -130,7 +129,6 @@
         .toast.show { transform: translateX(0); }
         .toast-icon { color: var(--accent-emerald); }
 
-        /* 历史记录面板 */
         .history-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 150; display: none; backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
         .history-overlay.show { display: block; animation: fadeInOverlay 0.25s ease; }
         .history-panel { position: fixed; right: 0; top: 0; height: 100vh; width: 420px; max-width: 90vw; background: #111827; border-left: 1px solid #2a3a52; z-index: 151; transform: translateX(100%); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1); display: flex; flex-direction: column; box-shadow: -10px 0 40px rgba(0,0,0,0.4); }
@@ -160,7 +158,6 @@
         .clear-all-btn:hover { background: rgba(244,63,94,0.15); }
         .record-count { text-align: center; font-size: 0.75rem; color: #64748b; margin-bottom: 0.5rem; }
 
-        /* 修改密码弹窗 */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
         .modal-dialog { background: #ffffff; border-radius: 16px; padding: 2rem; width: 90%; max-width: 420px; box-shadow: 0 25px 60px rgba(0,0,0,0.3); animation: modalSlideIn 0.35s ease; font-family: 'Noto Sans SC', 'Inter', sans-serif; }
         @keyframes modalSlideIn { from { opacity: 0; transform: translateY(-30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
@@ -196,11 +193,11 @@
     </style>
 </head>
 <body>
-    <!-- 认证视图 -->
+    <!-- 认证视图：用户名登录/注册 -->
     <div class="auth-wrapper" id="authWrapper">
         <div class="auth-bg-decoration d1"></div><div class="auth-bg-decoration d2"></div><div class="auth-bg-decoration d3"></div>
         <div class="auth-container" id="authContainer">
-            <!-- 登录卡片：改为用户名登录 -->
+            <!-- 登录卡片 -->
             <div class="auth-card" id="loginCard">
                 <div class="auth-logo"><div class="logo-icon"><i data-lucide="cpu" style="width:26px;height:26px;color:#fff;"></i></div><h2>售前信息管理系统</h2><p>自动化集成商项目平台</p></div>
                 <div class="auth-error" id="loginError"></div>
@@ -211,7 +208,7 @@
                 </form>
                 <div class="auth-links"><button onclick="showRegister()">注册</button><span class="divider">|</span><button onclick="showForgotPassword()">忘记密码？</button><span class="divider">|</span><button onclick="goToCloudInfo()">关于系统</button></div>
             </div>
-            <!-- 注册卡片：移除邮箱，只需用户名、手机号（选填）、密码 -->
+            <!-- 注册卡片 -->
             <div class="auth-card" id="registerCard" style="display:none;">
                 <div class="auth-logo"><div class="logo-icon"><i data-lucide="user-plus" style="width:26px;height:26px;color:#fff;"></i></div><h2>注册账号</h2><p>加入售前信息管理系统</p></div>
                 <div class="auth-error" id="registerError"></div><div class="auth-success" id="registerSuccess"></div>
@@ -224,7 +221,7 @@
                 </form>
                 <div class="auth-links"><button onclick="showLogin()">已有账号？立即登录</button></div>
             </div>
-            <!-- 忘记密码卡片：输入用户名重置为默认密码 -->
+            <!-- 忘记密码卡片 -->
             <div class="auth-card" id="forgotCard" style="display:none;">
                 <div class="auth-logo"><div class="logo-icon"><i data-lucide="key-round" style="width:26px;height:26px;color:#fff;"></i></div><h2>找回密码</h2><p>重置您的登录密码</p></div>
                 <div class="auth-error" id="forgotError"></div><div class="auth-success" id="forgotSuccess"></div>
@@ -435,132 +432,88 @@
     <div class="toast" id="toast"><i data-lucide="check-circle" class="toast-icon" style="width:20px;height:20px;"></i><span id="toastMessage">操作成功</span></div>
 
     <script>
-        // ========== 本地存储工具 ==========
+        // ========== 本地存储 ==========
         const STORAGE_USERS = 'app_users';
         const STORAGE_CURRENT = 'currentUser';
 
         function getUsers() {
-            try {
-                return JSON.parse(localStorage.getItem(STORAGE_USERS) || '{}');
-            } catch (e) {
-                return {};
-            }
+            try { return JSON.parse(localStorage.getItem(STORAGE_USERS) || '{}'); } catch (e) { return {}; }
         }
-
         function saveUsers(users) {
             localStorage.setItem(STORAGE_USERS, JSON.stringify(users));
         }
-
         function getCurrentUser() {
             return sessionStorage.getItem(STORAGE_CURRENT);
         }
-
         function setCurrentUser(username) {
             sessionStorage.setItem(STORAGE_CURRENT, username);
         }
-
         function clearCurrentUser() {
             sessionStorage.removeItem(STORAGE_CURRENT);
         }
 
-        // ========== 认证逻辑 ==========
+        // 认证
         function signUp(username, password, phone) {
             const users = getUsers();
-            if (users[username]) {
-                throw new Error('用户名已存在');
-            }
-            users[username] = {
-                username: username,
-                password: password, // 简单存储，实际生产应加密
-                phone: phone || '',
-                createdAt: new Date().toISOString()
-            };
+            if (users[username]) throw new Error('用户名已存在');
+            users[username] = { username, password, phone: phone || '', createdAt: new Date().toISOString() };
             saveUsers(users);
         }
-
         function signIn(username, password) {
             const users = getUsers();
             const user = users[username];
-            if (!user) {
-                throw new Error('用户名不存在');
-            }
-            if (user.password !== password) {
-                throw new Error('密码错误');
-            }
+            if (!user) throw new Error('用户名不存在');
+            if (user.password !== password) throw new Error('密码错误');
             setCurrentUser(username);
             return user;
         }
-
-        function signOut() {
-            clearCurrentUser();
-        }
-
+        function signOut() { clearCurrentUser(); }
         function changePassword(oldPassword, newPassword) {
             const username = getCurrentUser();
             if (!username) throw new Error('未登录');
             const users = getUsers();
             const user = users[username];
             if (!user) throw new Error('用户不存在');
-            if (user.password !== oldPassword) {
-                throw new Error('旧密码错误');
-            }
+            if (user.password !== oldPassword) throw new Error('旧密码错误');
             user.password = newPassword;
             saveUsers(users);
         }
-
         function resetPassword(username) {
             const users = getUsers();
-            if (!users[username]) {
-                throw new Error('用户名不存在');
-            }
+            if (!users[username]) throw new Error('用户名不存在');
             users[username].password = '123456';
             saveUsers(users);
         }
 
-        // ========== 历史记录本地存储 ==========
+        // 历史记录（按用户隔离）
         function getHistoryKey() {
             const username = getCurrentUser();
             return username ? `history_${username}` : null;
         }
-
         function getHistory() {
             const key = getHistoryKey();
             if (!key) return [];
-            try {
-                return JSON.parse(localStorage.getItem(key) || '[]');
-            } catch (e) {
-                return [];
-            }
+            try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch (e) { return []; }
         }
-
         function saveHistory(records) {
             const key = getHistoryKey();
-            if (!key) return;
-            localStorage.setItem(key, JSON.stringify(records.slice(0, 50))); // 限制最多50条
+            if (key) localStorage.setItem(key, JSON.stringify(records.slice(0, 50)));
         }
-
         function addHistoryRecord(projectName, exportData) {
             const records = getHistory();
-            records.unshift({
-                id: Date.now().toString(),
-                projectName: projectName || '未命名项目',
-                exportData: exportData,
-                createdAt: new Date().toISOString()
-            });
+            records.unshift({ id: Date.now().toString(), projectName: projectName || '未命名项目', exportData, createdAt: new Date().toISOString() });
             saveHistory(records);
         }
-
         function deleteHistoryRecordById(recordId) {
             const records = getHistory().filter(r => r.id !== recordId);
             saveHistory(records);
         }
-
         function clearAllHistory() {
             const key = getHistoryKey();
             if (key) localStorage.removeItem(key);
         }
 
-        // ========== UI 切换 ==========
+        // UI 函数
         function showLogin() {
             document.getElementById('loginCard').style.display = '';
             document.getElementById('registerCard').style.display = 'none';
@@ -571,7 +524,6 @@
             document.getElementById('forgotForm').reset();
             reinitAuthIcons();
         }
-
         function showRegister() {
             document.getElementById('loginCard').style.display = 'none';
             document.getElementById('registerCard').style.display = '';
@@ -580,7 +532,6 @@
             document.getElementById('registerForm').reset();
             reinitAuthIcons();
         }
-
         function showForgotPassword() {
             document.getElementById('loginCard').style.display = 'none';
             document.getElementById('registerCard').style.display = 'none';
@@ -589,23 +540,25 @@
             document.getElementById('forgotForm').reset();
             reinitAuthIcons();
         }
-
         function goToCloudInfo() {
-            alert('关于售前信息管理系统\n\n本系统用于自动化集成商项目的售前信息登记与管理。数据保存在浏览器本地存储中。');
+            alert('关于售前信息管理系统\n\n数据安全存储在您的浏览器本地。');
+        }
+        function togglePassword(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const icon = btn.querySelector('[data-lucide]') || btn.querySelector('svg');
+            if (input.type === 'password') { input.type = 'text'; if (icon) icon.setAttribute('data-lucide', 'eye'); }
+            else { input.type = 'password'; if (icon) icon.setAttribute('data-lucide', 'eye-off'); }
+            if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
         }
 
-        // 登录表单
+        // 表单事件
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const username = document.getElementById('loginUsername').value.trim();
             const password = document.getElementById('loginPassword').value;
             const errorEl = document.getElementById('loginError');
             errorEl.classList.remove('show');
-            if (!username || !password) {
-                errorEl.textContent = '请填写用户名和密码';
-                errorEl.classList.add('show');
-                return;
-            }
+            if (!username || !password) { errorEl.textContent = '请填写用户名和密码'; errorEl.classList.add('show'); return; }
             try {
                 const user = signIn(username, password);
                 switchToApp(user);
@@ -614,8 +567,6 @@
                 errorEl.classList.add('show');
             }
         });
-
-        // 注册表单
         document.getElementById('registerForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const username = document.getElementById('regUsername').value.trim();
@@ -624,84 +575,39 @@
             const confirmPassword = document.getElementById('regConfirmPassword').value;
             const errorEl = document.getElementById('registerError');
             const successEl = document.getElementById('registerSuccess');
-            errorEl.classList.remove('show');
-            successEl.classList.remove('show');
-            if (!username || !password || !confirmPassword) {
-                errorEl.textContent = '请填写必填字段（用户名、密码）';
-                errorEl.classList.add('show');
-                return;
-            }
-            if (username.length < 3 || username.length > 20) {
-                errorEl.textContent = '用户名长度应在3-20个字符之间';
-                errorEl.classList.add('show');
-                return;
-            }
-            if (!/^[a-zA-Z0-9_\u4e00-\u9fa5]+$/.test(username)) {
-                errorEl.textContent = '用户名只能包含中英文、数字和下划线';
-                errorEl.classList.add('show');
-                return;
-            }
-            if (password.length < 6) {
-                errorEl.textContent = '密码长度至少6位';
-                errorEl.classList.add('show');
-                return;
-            }
-            if (password !== confirmPassword) {
-                errorEl.textContent = '两次输入的密码不一致';
-                errorEl.classList.add('show');
-                return;
-            }
-            if (phone && !/^1[3-9]\d{9}$/.test(phone)) {
-                errorEl.textContent = '请输入有效的手机号';
-                errorEl.classList.add('show');
-                return;
-            }
+            errorEl.classList.remove('show'); successEl.classList.remove('show');
+            if (!username || !password || !confirmPassword) { errorEl.textContent = '请填写必填字段'; errorEl.classList.add('show'); return; }
+            if (username.length < 3 || username.length > 20) { errorEl.textContent = '用户名长度3-20个字符'; errorEl.classList.add('show'); return; }
+            if (!/^[a-zA-Z0-9_\u4e00-\u9fa5]+$/.test(username)) { errorEl.textContent = '用户名只能包含中英文、数字和下划线'; errorEl.classList.add('show'); return; }
+            if (password.length < 6) { errorEl.textContent = '密码至少6位'; errorEl.classList.add('show'); return; }
+            if (password !== confirmPassword) { errorEl.textContent = '两次密码不一致'; errorEl.classList.add('show'); return; }
+            if (phone && !/^1[3-9]\d{9}$/.test(phone)) { errorEl.textContent = '手机号无效'; errorEl.classList.add('show'); return; }
             try {
                 signUp(username, password, phone);
-                successEl.textContent = '注册成功！请使用用户名登录。';
+                successEl.textContent = '注册成功！请登录。';
                 successEl.classList.add('show');
                 setTimeout(() => { showLogin(); }, 2000);
             } catch (err) {
-                errorEl.textContent = err.message || '注册失败';
+                errorEl.textContent = err.message;
                 errorEl.classList.add('show');
             }
         });
-
-        // 忘记密码表单
         document.getElementById('forgotForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const username = document.getElementById('forgotUsername').value.trim();
             const errorEl = document.getElementById('forgotError');
             const successEl = document.getElementById('forgotSuccess');
-            errorEl.classList.remove('show');
-            successEl.classList.remove('show');
-            if (!username) {
-                errorEl.textContent = '请输入用户名';
-                errorEl.classList.add('show');
-                return;
-            }
+            errorEl.classList.remove('show'); successEl.classList.remove('show');
+            if (!username) { errorEl.textContent = '请输入用户名'; errorEl.classList.add('show'); return; }
             try {
                 resetPassword(username);
                 successEl.textContent = '密码已重置为 123456，请使用新密码登录。';
                 successEl.classList.add('show');
             } catch (err) {
-                errorEl.textContent = err.message || '重置失败';
+                errorEl.textContent = err.message;
                 errorEl.classList.add('show');
             }
         });
-
-        function togglePassword(inputId, btn) {
-            const input = document.getElementById(inputId);
-            const icon = btn.querySelector('[data-lucide]') || btn.querySelector('svg');
-            if (input.type === 'password') {
-                input.type = 'text';
-                if (icon) icon.setAttribute('data-lucide', 'eye');
-            } else {
-                input.type = 'password';
-                if (icon) icon.setAttribute('data-lucide', 'eye-off');
-            }
-            if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
-        }
 
         function switchToApp(user) {
             document.getElementById('authWrapper').style.display = 'none';
@@ -712,7 +618,6 @@
             updateHistoryPanel();
             reinitAllIcons();
         }
-
         function switchToAuth() {
             document.getElementById('authWrapper').style.display = '';
             document.getElementById('appWrapper').classList.remove('active');
@@ -720,9 +625,8 @@
             showLogin();
             reinitAllIcons();
         }
-
-        async function logout() {
-            if (confirm('确定要退出登录吗？')) {
+        function logout() {
+            if (confirm('确定退出登录吗？')) {
                 signOut();
                 document.getElementById('projectForm').reset();
                 document.getElementById('progressFill').style.width = '0%';
@@ -730,18 +634,16 @@
             }
         }
 
-        // 修改密码弹窗
+        // 修改密码
         function openChangePasswordModal() {
             document.getElementById('changePasswordModal').style.display = 'flex';
             document.getElementById('modalError').classList.remove('show');
             document.getElementById('modalSuccess').classList.remove('show');
             document.getElementById('changePasswordForm').reset();
         }
-
         function closeChangePasswordModal() {
             document.getElementById('changePasswordModal').style.display = 'none';
         }
-
         document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const oldPassword = document.getElementById('oldPassword').value;
@@ -749,226 +651,146 @@
             const confirmNewPassword = document.getElementById('confirmNewPassword').value;
             const errorEl = document.getElementById('modalError');
             const successEl = document.getElementById('modalSuccess');
-            errorEl.classList.remove('show');
-            successEl.classList.remove('show');
-            if (!oldPassword || !newPassword || !confirmNewPassword) {
-                errorEl.textContent = '请填写所有字段';
-                errorEl.classList.add('show');
-                return;
-            }
-            if (newPassword.length < 6) {
-                errorEl.textContent = '新密码长度至少6位';
-                errorEl.classList.add('show');
-                return;
-            }
-            if (newPassword !== confirmNewPassword) {
-                errorEl.textContent = '两次输入的新密码不一致';
-                errorEl.classList.add('show');
-                return;
-            }
+            errorEl.classList.remove('show'); successEl.classList.remove('show');
+            if (!oldPassword || !newPassword || !confirmNewPassword) { errorEl.textContent = '请填写所有字段'; errorEl.classList.add('show'); return; }
+            if (newPassword.length < 6) { errorEl.textContent = '新密码至少6位'; errorEl.classList.add('show'); return; }
+            if (newPassword !== confirmNewPassword) { errorEl.textContent = '两次密码不一致'; errorEl.classList.add('show'); return; }
             try {
                 changePassword(oldPassword, newPassword);
                 successEl.textContent = '密码修改成功！';
                 successEl.classList.add('show');
                 setTimeout(() => { closeChangePasswordModal(); }, 1500);
             } catch (err) {
-                errorEl.textContent = err.message || '修改失败';
+                errorEl.textContent = err.message;
                 errorEl.classList.add('show');
             }
         });
 
-        // 卡片折叠
-        function toggleCard(cardId) {
-            document.getElementById(cardId).classList.toggle('collapsed');
-        }
-
-        // 进度条
+        // 表单功能
+        function toggleCard(cardId) { document.getElementById(cardId).classList.toggle('collapsed'); }
         function updateProgress() {
             const inputs = document.querySelectorAll('#projectForm input, #projectForm select, #projectForm textarea');
             let filled = 0;
-            inputs.forEach(input => {
-                if (input.value && input.value.toString().trim() !== '') filled++;
-            });
-            const percent = Math.round((filled / inputs.length) * 100);
-            document.getElementById('progressFill').style.width = percent + '%';
+            inputs.forEach(input => { if (input.value && input.value.toString().trim() !== '') filled++; });
+            document.getElementById('progressFill').style.width = Math.round((filled / inputs.length) * 100) + '%';
         }
-
         document.getElementById('projectForm').addEventListener('input', updateProgress);
         document.getElementById('projectForm').addEventListener('change', updateProgress);
 
-        // 收集表单数据
         function collectFormData() {
             const form = document.getElementById('projectForm');
             const formData = new FormData(form);
             const data = {};
-            for (let [key, value] of formData.entries()) {
-                data[key] = value;
-            }
+            for (let [key, value] of formData.entries()) { data[key] = value; }
             return data;
         }
-
-        // 重置表单
         function resetForm() {
-            if (confirm('确定要重置所有已填写的表单数据吗？此操作不可撤销。')) {
+            if (confirm('确定重置所有表单数据吗？')) {
                 document.getElementById('projectForm').reset();
                 updateProgress();
                 showToast('表单已重置');
             }
         }
-
-        // 预览数据
         function previewData() {
             const data = collectFormData();
-            let preview = '当前表单数据预览：\n\n';
+            let preview = '当前表单数据：\n\n';
             for (const [key, value] of Object.entries(data)) {
-                if (value && value.toString().trim() !== '') {
-                    const label = key; // 简化显示
-                    preview += `${label}: ${value}\n`;
-                }
+                if (value && value.toString().trim() !== '') preview += `${key}: ${value}\n`;
             }
-            if (preview === '当前表单数据预览：\n\n') {
-                preview += '（尚未填写任何数据）';
-            }
-            alert(preview);
+            alert(preview || '暂无数据');
         }
-
-        // 导出Excel并保存历史
         function exportToExcel() {
             const data = collectFormData();
             const projectName = data.projectName || '未命名项目';
-            const wsData = [
-                ['字段', '值'],
-                ...Object.entries(data).map(([key, value]) => [key, value])
-            ];
+            const wsData = [['字段', '值'], ...Object.entries(data).map(([k, v]) => [k, v])];
             const ws = XLSX.utils.aoa_to_sheet(wsData);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, '项目信息');
-            const fileName = `${projectName}_${new Date().toISOString().slice(0,10)}.xlsx`;
-            XLSX.writeFile(wb, fileName);
-            
-            // 保存到历史记录
+            XLSX.writeFile(wb, `${projectName}_${new Date().toISOString().slice(0,10)}.xlsx`);
             addHistoryRecord(projectName, data);
             updateHistoryPanel();
-            showToast(`导出成功！已保存至历史记录。`);
+            showToast('导出成功，已保存至历史记录');
         }
-
-        // Toast 提示
         function showToast(message) {
             const toast = document.getElementById('toast');
             document.getElementById('toastMessage').textContent = message;
             toast.classList.add('show');
-            setTimeout(() => { toast.classList.remove('show'); }, 2500);
+            setTimeout(() => toast.classList.remove('show'), 2500);
         }
 
-        // 历史记录面板
+        // 历史面板
         function openHistoryPanel() {
             document.getElementById('historyOverlay').classList.add('show');
             document.getElementById('historyPanel').classList.add('show');
             updateHistoryPanel();
         }
-
         function closeHistoryPanel() {
             document.getElementById('historyOverlay').classList.remove('show');
             document.getElementById('historyPanel').classList.remove('show');
         }
-
         function updateHistoryPanel() {
             const records = getHistory();
             const listEl = document.getElementById('historyList');
-            const countEl = document.getElementById('recordCount');
-            countEl.textContent = `共 ${records.length} 条记录`;
-            
+            document.getElementById('recordCount').textContent = `共 ${records.length} 条记录`;
             if (records.length === 0) {
-                listEl.innerHTML = '<div class="history-empty"><div class="empty-icon">📭</div><div>暂无导出记录</div><div style="margin-top:0.25rem;font-size:0.8rem;">导出Excel后会自动保存到此处</div></div>';
+                listEl.innerHTML = '<div class="history-empty"><div class="empty-icon">📭</div><div>暂无导出记录</div></div>';
                 return;
             }
-            
-            listEl.innerHTML = records.map(record => {
-                const time = new Date(record.createdAt).toLocaleString('zh-CN');
-                return `
-                    <div class="history-item">
-                        <div class="hi-header">
-                            <span class="hi-project">${escapeHtml(record.projectName)}</span>
-                            <span class="hi-time">${time}</span>
-                        </div>
-                        <div class="hi-actions">
-                            <button class="hi-btn hi-btn-load" onclick="loadHistoryRecord('${record.id}')">📥 加载</button>
-                            <button class="hi-btn hi-btn-delete" onclick="deleteHistoryRecordById('${record.id}'); updateHistoryPanel();">🗑️ 删除</button>
-                        </div>
+            listEl.innerHTML = records.map(r => `
+                <div class="history-item">
+                    <div class="hi-header">
+                        <span class="hi-project">${escapeHtml(r.projectName)}</span>
+                        <span class="hi-time">${new Date(r.createdAt).toLocaleString('zh-CN')}</span>
                     </div>
-                `;
-            }).join('');
+                    <div class="hi-actions">
+                        <button class="hi-btn hi-btn-load" onclick="loadHistoryRecord('${r.id}')">📥 加载</button>
+                        <button class="hi-btn hi-btn-delete" onclick="deleteHistoryRecordById('${r.id}'); updateHistoryPanel();">🗑️ 删除</button>
+                    </div>
+                </div>
+            `).join('');
         }
-
         function loadHistoryRecord(recordId) {
             const records = getHistory();
             const record = records.find(r => r.id === recordId);
             if (!record) return;
             const data = record.exportData;
             const form = document.getElementById('projectForm');
-            // 填充表单
             for (const [key, value] of Object.entries(data)) {
                 const field = form.elements[key];
-                if (field) {
-                    if (field.type === 'select-one' || field.type === 'text' || field.type === 'number' || field.type === 'date' || field.type === 'email' || field.type === 'tel' || field.type === 'url' || field.type === 'textarea') {
-                        field.value = value;
-                    }
-                }
+                if (field) field.value = value;
             }
             updateProgress();
             closeHistoryPanel();
-            showToast('历史记录已加载到表单');
+            showToast('历史记录已加载');
         }
-
         function escapeHtml(text) {
             const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
             return String(text).replace(/[&<>"']/g, m => map[m]);
         }
 
-        // 图标重新初始化
-        function reinitAuthIcons() {
-            if (typeof lucide !== 'undefined' && lucide.createIcons) {
-                lucide.createIcons();
-            }
-        }
+        function reinitAuthIcons() { if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons(); }
+        function reinitAllIcons() { if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons(); }
 
-        function reinitAllIcons() {
-            if (typeof lucide !== 'undefined' && lucide.createIcons) {
-                lucide.createIcons();
-            }
-        }
-
-        // 初始检查登录状态
+        // 初始化
         window.addEventListener('DOMContentLoaded', () => {
             const currentUser = getCurrentUser();
             if (currentUser) {
                 const users = getUsers();
                 const user = users[currentUser];
-                if (user) {
-                    switchToApp(user);
-                    return;
-                }
+                if (user) { switchToApp(user); return; }
             }
-            // 未登录显示认证界面
             document.getElementById('authWrapper').style.display = '';
             document.getElementById('appWrapper').classList.remove('active');
             showLogin();
             reinitAllIcons();
         });
 
-        // 监听storage变化（多标签页同步）
         window.addEventListener('storage', (e) => {
             if (e.key === STORAGE_USERS || (e.key && e.key.startsWith('history_'))) {
-                // 如果用户数据变更，不影响当前登录状态（除非当前用户被删除）
                 const currentUser = getCurrentUser();
                 if (currentUser) {
                     const users = getUsers();
-                    if (!users[currentUser]) {
-                        // 用户已被删除（如其他标签页操作），强制登出
-                        alert('您的账号在其他地方被修改，请重新登录。');
-                        signOut();
-                        switchToAuth();
-                    }
+                    if (!users[currentUser]) { alert('账号已变更，请重新登录'); signOut(); switchToAuth(); }
                 }
                 updateHistoryPanel();
             }
