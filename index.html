@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>自动化集成商 - 售前信息管理系统</title>
-    <!-- 引入 Supabase SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- 移除 Supabase SDK，改用 localStorage -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
@@ -201,23 +200,22 @@
     <div class="auth-wrapper" id="authWrapper">
         <div class="auth-bg-decoration d1"></div><div class="auth-bg-decoration d2"></div><div class="auth-bg-decoration d3"></div>
         <div class="auth-container" id="authContainer">
-            <!-- 登录卡片 -->
+            <!-- 登录卡片：改为用户名登录 -->
             <div class="auth-card" id="loginCard">
                 <div class="auth-logo"><div class="logo-icon"><i data-lucide="cpu" style="width:26px;height:26px;color:#fff;"></i></div><h2>售前信息管理系统</h2><p>自动化集成商项目平台</p></div>
                 <div class="auth-error" id="loginError"></div>
                 <form class="auth-form" id="loginForm" autocomplete="off">
-                    <div class="auth-input-group"><label for="loginEmail">邮箱（登录账号）</label><div class="auth-input-wrapper"><i data-lucide="mail" class="input-icon"></i><input type="email" id="loginEmail" placeholder="请输入注册邮箱" required autocomplete="email"></div></div>
+                    <div class="auth-input-group"><label for="loginUsername">用户名</label><div class="auth-input-wrapper"><i data-lucide="user" class="input-icon"></i><input type="text" id="loginUsername" placeholder="请输入用户名" required autocomplete="username"></div></div>
                     <div class="auth-input-group"><label for="loginPassword">密码</label><div class="auth-input-wrapper"><i data-lucide="lock" class="input-icon"></i><input type="password" id="loginPassword" placeholder="请输入密码" required autocomplete="current-password"><button type="button" class="toggle-pwd" onclick="togglePassword('loginPassword', this)" tabindex="-1"><i data-lucide="eye-off" style="width:18px;height:18px;"></i></button></div></div>
                     <button type="submit" class="auth-btn">登 录</button>
                 </form>
                 <div class="auth-links"><button onclick="showRegister()">注册</button><span class="divider">|</span><button onclick="showForgotPassword()">忘记密码？</button><span class="divider">|</span><button onclick="goToCloudInfo()">关于系统</button></div>
             </div>
-            <!-- 注册卡片 -->
+            <!-- 注册卡片：移除邮箱，只需用户名、手机号（选填）、密码 -->
             <div class="auth-card" id="registerCard" style="display:none;">
                 <div class="auth-logo"><div class="logo-icon"><i data-lucide="user-plus" style="width:26px;height:26px;color:#fff;"></i></div><h2>注册账号</h2><p>加入售前信息管理系统</p></div>
                 <div class="auth-error" id="registerError"></div><div class="auth-success" id="registerSuccess"></div>
                 <form class="auth-form" id="registerForm" autocomplete="off">
-                    <div class="auth-input-group"><label for="regEmail">邮箱（登录账号） <span style="color:#f43f5e;">*</span></label><div class="auth-input-wrapper"><i data-lucide="mail" class="input-icon"></i><input type="email" id="regEmail" placeholder="请输入邮箱地址" required autocomplete="email"></div></div>
                     <div class="auth-input-group"><label for="regUsername">用户名 <span style="color:#f43f5e;">*</span></label><div class="auth-input-wrapper"><i data-lucide="user" class="input-icon"></i><input type="text" id="regUsername" placeholder="请输入用户名（3-20个字符）" required minlength="3" maxlength="20" autocomplete="username"></div></div>
                     <div class="auth-input-group"><label for="regPhone">手机号（选填）</label><div class="auth-input-wrapper"><i data-lucide="phone" class="input-icon"></i><input type="tel" id="regPhone" placeholder="请输入手机号（可选）" autocomplete="tel"></div></div>
                     <div class="auth-input-group"><label for="regPassword">密码 <span style="color:#f43f5e;">*</span></label><div class="auth-input-wrapper"><i data-lucide="lock" class="input-icon"></i><input type="password" id="regPassword" placeholder="请输入密码（至少6位）" required minlength="6" autocomplete="new-password"><button type="button" class="toggle-pwd" onclick="togglePassword('regPassword', this)" tabindex="-1"><i data-lucide="eye-off" style="width:18px;height:18px;"></i></button></div></div>
@@ -226,13 +224,13 @@
                 </form>
                 <div class="auth-links"><button onclick="showLogin()">已有账号？立即登录</button></div>
             </div>
-            <!-- 忘记密码卡片 -->
+            <!-- 忘记密码卡片：输入用户名重置为默认密码 -->
             <div class="auth-card" id="forgotCard" style="display:none;">
                 <div class="auth-logo"><div class="logo-icon"><i data-lucide="key-round" style="width:26px;height:26px;color:#fff;"></i></div><h2>找回密码</h2><p>重置您的登录密码</p></div>
                 <div class="auth-error" id="forgotError"></div><div class="auth-success" id="forgotSuccess"></div>
                 <form class="auth-form" id="forgotForm" autocomplete="off">
-                    <div class="auth-input-group"><label for="forgotEmail">注册邮箱</label><div class="auth-input-wrapper"><i data-lucide="mail" class="input-icon"></i><input type="email" id="forgotEmail" placeholder="请输入注册时使用的邮箱" required></div></div>
-                    <button type="submit" class="auth-btn">发送重置邮件</button>
+                    <div class="auth-input-group"><label for="forgotUsername">用户名</label><div class="auth-input-wrapper"><i data-lucide="user" class="input-icon"></i><input type="text" id="forgotUsername" placeholder="请输入您的用户名" required></div></div>
+                    <button type="submit" class="auth-btn">重置密码为123456</button>
                 </form>
                 <div class="auth-links"><button onclick="showLogin()">想起密码了？返回登录</button></div>
             </div>
@@ -437,79 +435,132 @@
     <div class="toast" id="toast"><i data-lucide="check-circle" class="toast-icon" style="width:20px;height:20px;"></i><span id="toastMessage">操作成功</span></div>
 
     <script>
-        // ========== 1. 初始化 Supabase ==========
-        const SUPABASE_URL = 'https://ulrrbwvxuihrslweqrle.supabase.co'
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVscnJid3Z4dWlocnNsd2VxcmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNTU2MjgsImV4cCI6MjA5MjYzMTYyOH0.FPXSLccJOopap323fjND8Xmtoal_cg8ir7wYt2Faol8'
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // ========== 本地存储工具 ==========
+        const STORAGE_USERS = 'app_users';
+        const STORAGE_CURRENT = 'currentUser';
 
-        const MAX_HISTORY = 50;
-
-        // ========== 2. 认证相关函数 ==========
-        async function signUp(email, password, username, phone) {
-            const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { username, phone: phone || '' } } });
-            if (error) throw error;
-            return data;
+        function getUsers() {
+            try {
+                return JSON.parse(localStorage.getItem(STORAGE_USERS) || '{}');
+            } catch (e) {
+                return {};
+            }
         }
 
-        async function signIn(email, password) {
-            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-            if (error) throw error;
-            return data;
+        function saveUsers(users) {
+            localStorage.setItem(STORAGE_USERS, JSON.stringify(users));
         }
 
-        async function signOutUser() {
-            await supabase.auth.signOut();
+        function getCurrentUser() {
+            return sessionStorage.getItem(STORAGE_CURRENT);
         }
 
-        async function getCurrentUser() {
-            const { data: { user }, error } = await supabase.auth.getUser();
-            if (error) throw error;
+        function setCurrentUser(username) {
+            sessionStorage.setItem(STORAGE_CURRENT, username);
+        }
+
+        function clearCurrentUser() {
+            sessionStorage.removeItem(STORAGE_CURRENT);
+        }
+
+        // ========== 认证逻辑 ==========
+        function signUp(username, password, phone) {
+            const users = getUsers();
+            if (users[username]) {
+                throw new Error('用户名已存在');
+            }
+            users[username] = {
+                username: username,
+                password: password, // 简单存储，实际生产应加密
+                phone: phone || '',
+                createdAt: new Date().toISOString()
+            };
+            saveUsers(users);
+        }
+
+        function signIn(username, password) {
+            const users = getUsers();
+            const user = users[username];
+            if (!user) {
+                throw new Error('用户名不存在');
+            }
+            if (user.password !== password) {
+                throw new Error('密码错误');
+            }
+            setCurrentUser(username);
             return user;
         }
 
-        async function changePassword(oldPassword, newPassword) {
-            const user = await getCurrentUser();
-            if (!user || !user.email) throw new Error('无法获取用户信息');
-            const { error: signInError } = await supabase.auth.signInWithPassword({ email: user.email, password: oldPassword });
-            if (signInError) throw signInError;
-            const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
-            if (updateError) throw updateError;
+        function signOut() {
+            clearCurrentUser();
         }
 
-        async function resetPassword(email) {
-            const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + window.location.pathname + '?reset=true' });
-            if (error) throw error;
+        function changePassword(oldPassword, newPassword) {
+            const username = getCurrentUser();
+            if (!username) throw new Error('未登录');
+            const users = getUsers();
+            const user = users[username];
+            if (!user) throw new Error('用户不存在');
+            if (user.password !== oldPassword) {
+                throw new Error('旧密码错误');
+            }
+            user.password = newPassword;
+            saveUsers(users);
         }
 
-        // ========== 3. 历史记录相关函数 ==========
-        async function addHistoryRecord(projectName, exportData) {
-            const user = await getCurrentUser();
-            if (!user) throw new Error('未登录');
-            const { error } = await supabase.from('history_records').insert({ user_id: user.id, project_name: projectName, export_data: exportData });
-            if (error) throw error;
+        function resetPassword(username) {
+            const users = getUsers();
+            if (!users[username]) {
+                throw new Error('用户名不存在');
+            }
+            users[username].password = '123456';
+            saveUsers(users);
         }
 
-        async function fetchHistoryRecords() {
-            const user = await getCurrentUser();
-            if (!user) return [];
-            const { data, error } = await supabase.from('history_records').select('*').order('created_at', { ascending: false }).limit(MAX_HISTORY);
-            if (error) throw error;
-            return data;
+        // ========== 历史记录本地存储 ==========
+        function getHistoryKey() {
+            const username = getCurrentUser();
+            return username ? `history_${username}` : null;
         }
 
-        async function deleteHistoryRecordById(recordId) {
-            const { error } = await supabase.from('history_records').delete().eq('id', recordId);
-            if (error) throw error;
+        function getHistory() {
+            const key = getHistoryKey();
+            if (!key) return [];
+            try {
+                return JSON.parse(localStorage.getItem(key) || '[]');
+            } catch (e) {
+                return [];
+            }
         }
 
-        async function deleteAllHistoryForUser() {
-            const user = await getCurrentUser();
-            if (!user) throw new Error('未登录');
-            const { error } = await supabase.from('history_records').delete().eq('user_id', user.id);
-            if (error) throw error;
+        function saveHistory(records) {
+            const key = getHistoryKey();
+            if (!key) return;
+            localStorage.setItem(key, JSON.stringify(records.slice(0, 50))); // 限制最多50条
         }
 
-        // ========== 4. UI 逻辑 ==========
+        function addHistoryRecord(projectName, exportData) {
+            const records = getHistory();
+            records.unshift({
+                id: Date.now().toString(),
+                projectName: projectName || '未命名项目',
+                exportData: exportData,
+                createdAt: new Date().toISOString()
+            });
+            saveHistory(records);
+        }
+
+        function deleteHistoryRecordById(recordId) {
+            const records = getHistory().filter(r => r.id !== recordId);
+            saveHistory(records);
+        }
+
+        function clearAllHistory() {
+            const key = getHistoryKey();
+            if (key) localStorage.removeItem(key);
+        }
+
+        // ========== UI 切换 ==========
         function showLogin() {
             document.getElementById('loginCard').style.display = '';
             document.getElementById('registerCard').style.display = 'none';
@@ -526,9 +577,7 @@
             document.getElementById('registerCard').style.display = '';
             document.getElementById('forgotCard').style.display = 'none';
             ['loginError','registerError','registerSuccess','forgotError','forgotSuccess'].forEach(id => document.getElementById(id).classList.remove('show'));
-            document.getElementById('loginForm').reset();
             document.getElementById('registerForm').reset();
-            document.getElementById('forgotForm').reset();
             reinitAuthIcons();
         }
 
@@ -537,26 +586,29 @@
             document.getElementById('registerCard').style.display = 'none';
             document.getElementById('forgotCard').style.display = '';
             ['loginError','registerError','registerSuccess','forgotError','forgotSuccess'].forEach(id => document.getElementById(id).classList.remove('show'));
-            document.getElementById('loginForm').reset();
-            document.getElementById('registerForm').reset();
             document.getElementById('forgotForm').reset();
             reinitAuthIcons();
         }
 
         function goToCloudInfo() {
-            alert('关于售前信息管理系统\n\n本系统用于自动化集成商项目的售前信息登记与管理。使用邮箱注册后，数据将安全保存在云端。');
+            alert('关于售前信息管理系统\n\n本系统用于自动化集成商项目的售前信息登记与管理。数据保存在浏览器本地存储中。');
         }
 
         // 登录表单
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            const email = document.getElementById('loginEmail').value.trim();
+            const username = document.getElementById('loginUsername').value.trim();
             const password = document.getElementById('loginPassword').value;
             const errorEl = document.getElementById('loginError');
             errorEl.classList.remove('show');
-            if (!email || !password) { errorEl.textContent = '请填写邮箱和密码'; errorEl.classList.add('show'); return; }
+            if (!username || !password) {
+                errorEl.textContent = '请填写用户名和密码';
+                errorEl.classList.add('show');
+                return;
+            }
             try {
-                await signIn(email, password);
+                const user = signIn(username, password);
+                switchToApp(user);
             } catch (err) {
                 errorEl.textContent = err.message || '登录失败';
                 errorEl.classList.add('show');
@@ -564,25 +616,49 @@
         });
 
         // 注册表单
-        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            const email = document.getElementById('regEmail').value.trim();
             const username = document.getElementById('regUsername').value.trim();
             const phone = document.getElementById('regPhone').value.trim();
             const password = document.getElementById('regPassword').value;
             const confirmPassword = document.getElementById('regConfirmPassword').value;
             const errorEl = document.getElementById('registerError');
             const successEl = document.getElementById('registerSuccess');
-            errorEl.classList.remove('show'); successEl.classList.remove('show');
-            if (!username || !email || !password || !confirmPassword) { errorEl.textContent = '请填写必填字段（邮箱、用户名、密码）'; errorEl.classList.add('show'); return; }
-            if (username.length < 3 || username.length > 20) { errorEl.textContent = '用户名长度应在3-20个字符之间'; errorEl.classList.add('show'); return; }
-            if (!/^[a-zA-Z0-9_\u4e00-\u9fa5]+$/.test(username)) { errorEl.textContent = '用户名只能包含中英文、数字和下划线'; errorEl.classList.add('show'); return; }
-            if (password.length < 6) { errorEl.textContent = '密码长度至少6位'; errorEl.classList.add('show'); return; }
-            if (password !== confirmPassword) { errorEl.textContent = '两次输入的密码不一致'; errorEl.classList.add('show'); return; }
-            if (phone && !/^1[3-9]\d{9}$/.test(phone)) { errorEl.textContent = '请输入有效的手机号'; errorEl.classList.add('show'); return; }
+            errorEl.classList.remove('show');
+            successEl.classList.remove('show');
+            if (!username || !password || !confirmPassword) {
+                errorEl.textContent = '请填写必填字段（用户名、密码）';
+                errorEl.classList.add('show');
+                return;
+            }
+            if (username.length < 3 || username.length > 20) {
+                errorEl.textContent = '用户名长度应在3-20个字符之间';
+                errorEl.classList.add('show');
+                return;
+            }
+            if (!/^[a-zA-Z0-9_\u4e00-\u9fa5]+$/.test(username)) {
+                errorEl.textContent = '用户名只能包含中英文、数字和下划线';
+                errorEl.classList.add('show');
+                return;
+            }
+            if (password.length < 6) {
+                errorEl.textContent = '密码长度至少6位';
+                errorEl.classList.add('show');
+                return;
+            }
+            if (password !== confirmPassword) {
+                errorEl.textContent = '两次输入的密码不一致';
+                errorEl.classList.add('show');
+                return;
+            }
+            if (phone && !/^1[3-9]\d{9}$/.test(phone)) {
+                errorEl.textContent = '请输入有效的手机号';
+                errorEl.classList.add('show');
+                return;
+            }
             try {
-                await signUp(email, password, username, phone);
-                successEl.textContent = '注册成功！请使用邮箱登录。';
+                signUp(username, password, phone);
+                successEl.textContent = '注册成功！请使用用户名登录。';
                 successEl.classList.add('show');
                 setTimeout(() => { showLogin(); }, 2000);
             } catch (err) {
@@ -592,19 +668,24 @@
         });
 
         // 忘记密码表单
-        document.getElementById('forgotForm').addEventListener('submit', async function(e) {
+        document.getElementById('forgotForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            const email = document.getElementById('forgotEmail').value.trim();
+            const username = document.getElementById('forgotUsername').value.trim();
             const errorEl = document.getElementById('forgotError');
             const successEl = document.getElementById('forgotSuccess');
-            errorEl.classList.remove('show'); successEl.classList.remove('show');
-            if (!email) { errorEl.textContent = '请输入注册邮箱'; errorEl.classList.add('show'); return; }
+            errorEl.classList.remove('show');
+            successEl.classList.remove('show');
+            if (!username) {
+                errorEl.textContent = '请输入用户名';
+                errorEl.classList.add('show');
+                return;
+            }
             try {
-                await resetPassword(email);
-                successEl.textContent = '重置密码邮件已发送，请查收邮件并点击链接重置密码';
+                resetPassword(username);
+                successEl.textContent = '密码已重置为 123456，请使用新密码登录。';
                 successEl.classList.add('show');
             } catch (err) {
-                errorEl.textContent = err.message || '发送失败';
+                errorEl.textContent = err.message || '重置失败';
                 errorEl.classList.add('show');
             }
         });
@@ -612,15 +693,20 @@
         function togglePassword(inputId, btn) {
             const input = document.getElementById(inputId);
             const icon = btn.querySelector('[data-lucide]') || btn.querySelector('svg');
-            if (input.type === 'password') { input.type = 'text'; if (icon) icon.setAttribute('data-lucide', 'eye'); }
-            else { input.type = 'password'; if (icon) icon.setAttribute('data-lucide', 'eye-off'); }
+            if (input.type === 'password') {
+                input.type = 'text';
+                if (icon) icon.setAttribute('data-lucide', 'eye');
+            } else {
+                input.type = 'password';
+                if (icon) icon.setAttribute('data-lucide', 'eye-off');
+            }
             if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
         }
 
         function switchToApp(user) {
             document.getElementById('authWrapper').style.display = 'none';
             document.getElementById('appWrapper').classList.add('active');
-            document.getElementById('displayUsername').textContent = user.user_metadata?.username || user.email;
+            document.getElementById('displayUsername').textContent = user.username;
             document.body.style.background = '#0a0f1a';
             updateProgress();
             updateHistoryPanel();
@@ -637,58 +723,256 @@
 
         async function logout() {
             if (confirm('确定要退出登录吗？')) {
-                await signOutUser();
+                signOut();
                 document.getElementById('projectForm').reset();
                 document.getElementById('progressFill').style.width = '0%';
                 switchToAuth();
             }
         }
 
-        // 修改密码弹窗逻辑与原一致，这里不再赘述，保持之前的代码即可
-        // ...（省略的修改密码JS与之前相同，这里不重复写出，保持使用前面版本中的完整逻辑）
+        // 修改密码弹窗
+        function openChangePasswordModal() {
+            document.getElementById('changePasswordModal').style.display = 'flex';
+            document.getElementById('modalError').classList.remove('show');
+            document.getElementById('modalSuccess').classList.remove('show');
+            document.getElementById('changePasswordForm').reset();
+        }
 
-        // 表单配置
-        const formFields = {
-            '项目概况': [
-                { key: 'projectName', label: '项目名称' },{ key: 'projectCode', label: '项目编号' },{ key: 'projectType', label: '项目类型' },
-                { key: 'projectStage', label: '项目阶段' },{ key: 'contractAmount', label: '预计合同金额（万元）' },{ key: 'projectSource', label: '项目来源' },
-                { key: 'startDate', label: '预计启动时间' },{ key: 'endDate', label: '预计交付时间' },{ key: 'projectSummary', label: '项目概述' }
-            ],
-            '业主单位信息': [
-                { key: 'ownerName', label: '业主单位名称' },{ key: 'creditCode', label: '统一社会信用代码' },{ key: 'industry', label: '所属行业' },
-                { key: 'enterpriseType', label: '企业性质' },{ key: 'companySize', label: '企业规模' },{ key: 'annualOutput', label: '年产值（亿元）' },
-                { key: 'ownerAddress', label: '企业地址' },{ key: 'ownerPhone', label: '联系电话' },{ key: 'ownerWebsite', label: '企业官网' }
-            ],
-            '关键决策人': [
-                { key: 'decision1Name', label: '决策人姓名' },{ key: 'decision1Position', label: '决策人职务' },{ key: 'decision1Phone', label: '决策人电话' },
-                { key: 'decision1Email', label: '决策人邮箱' },{ key: 'decision1Influence', label: '决策人影响力' },{ key: 'decision1Relation', label: '决策人关系状态' },
-                { key: 'decision2Name', label: '技术负责人姓名' },{ key: 'decision2Position', label: '技术负责人职务' },{ key: 'decision2Phone', label: '技术负责人电话' },
-                { key: 'decision2Email', label: '技术负责人邮箱' },{ key: 'decision2Influence', label: '技术负责人影响力' },{ key: 'decision2Relation', label: '技术负责人关系状态' },
-                { key: 'decision3Name', label: '采购负责人姓名' },{ key: 'decision3Position', label: '采购负责人职务' },{ key: 'decision3Phone', label: '采购负责人电话' },
-                { key: 'decision3Email', label: '采购负责人邮箱' },{ key: 'decision3Influence', label: '采购负责人影响力' },{ key: 'decision3Relation', label: '采购负责人关系状态' }
-            ],
-            '技术资料': [
-                { key: 'techSpec', label: '技术规格书' },{ key: 'drawings', label: '图纸资料' },{ key: 'siteSurvey', label: '现场勘测' },
-                { key: 'techExchange', label: '技术交流' },{ key: 'techRequirements', label: '技术要求说明' },{ key: 'existingEquipment', label: '现有设备/系统情况' },
-                { key: 'automationLevel', label: '自动化程度要求' },{ key: 'protocol', label: '通讯协议要求' },{ key: 'safetyLevel', label: '安全等级要求' },
-                { key: 'acceptanceStd', label: '验收标准' }
-            ],
-            '关键设备品牌要求': [
-                { key: 'plcBrand', label: 'PLC品牌要求' },{ key: 'hmiBrand', label: 'HMI品牌要求' },{ key: 'robotBrand', label: '机器人品牌要求' },
-                { key: 'servoBrand', label: '伺服品牌要求' },{ key: 'inverterBrand', label: '变频器品牌要求' },{ key: 'visionBrand', label: '视觉系统品牌' },
-                { key: 'sensorBrand', label: '传感器品牌要求' },{ key: 'pneumaticBrand', label: '气动元件品牌' },{ key: 'otherBrands', label: '其他设备品牌要求' },
-                { key: 'brandReason', label: '品牌指定原因' }
-            ],
-            '商务手续': [
-                { key: 'purchaseMethod', label: '采购方式' },{ key: 'bidDeadline', label: '投标截止日期' },{ key: 'bidBond', label: '投标保证金（万元）' },
-                { key: 'performanceBond', label: '履约保证金比例（%）' },{ key: 'warrantyBond', label: '质保金比例（%）' },{ key: 'warrantyPeriod', label: '质保期（月）' },
-                { key: 'paymentTerms', label: '付款方式' },{ key: 'invoiceType', label: '发票类型' },{ key: 'needGuarantee', label: '是否需要履约保函' },
-                { key: 'competitorCount', label: '竞争对手数量' },{ key: 'winProbability', label: '中标概率评估' },{ key: 'competitorInfo', label: '竞争对手信息' },
-                { key: 'otherTerms', label: '其他商务条款' }
-            ]
-        };
+        function closeChangePasswordModal() {
+            document.getElementById('changePasswordModal').style.display = 'none';
+        }
 
-        // ...（其余函数和初始化代码与之前完全相同，此处省略以节省篇幅，确保完整粘贴你之前有效的完整JS代码即可）
+        document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const oldPassword = document.getElementById('oldPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+            const errorEl = document.getElementById('modalError');
+            const successEl = document.getElementById('modalSuccess');
+            errorEl.classList.remove('show');
+            successEl.classList.remove('show');
+            if (!oldPassword || !newPassword || !confirmNewPassword) {
+                errorEl.textContent = '请填写所有字段';
+                errorEl.classList.add('show');
+                return;
+            }
+            if (newPassword.length < 6) {
+                errorEl.textContent = '新密码长度至少6位';
+                errorEl.classList.add('show');
+                return;
+            }
+            if (newPassword !== confirmNewPassword) {
+                errorEl.textContent = '两次输入的新密码不一致';
+                errorEl.classList.add('show');
+                return;
+            }
+            try {
+                changePassword(oldPassword, newPassword);
+                successEl.textContent = '密码修改成功！';
+                successEl.classList.add('show');
+                setTimeout(() => { closeChangePasswordModal(); }, 1500);
+            } catch (err) {
+                errorEl.textContent = err.message || '修改失败';
+                errorEl.classList.add('show');
+            }
+        });
+
+        // 卡片折叠
+        function toggleCard(cardId) {
+            document.getElementById(cardId).classList.toggle('collapsed');
+        }
+
+        // 进度条
+        function updateProgress() {
+            const inputs = document.querySelectorAll('#projectForm input, #projectForm select, #projectForm textarea');
+            let filled = 0;
+            inputs.forEach(input => {
+                if (input.value && input.value.toString().trim() !== '') filled++;
+            });
+            const percent = Math.round((filled / inputs.length) * 100);
+            document.getElementById('progressFill').style.width = percent + '%';
+        }
+
+        document.getElementById('projectForm').addEventListener('input', updateProgress);
+        document.getElementById('projectForm').addEventListener('change', updateProgress);
+
+        // 收集表单数据
+        function collectFormData() {
+            const form = document.getElementById('projectForm');
+            const formData = new FormData(form);
+            const data = {};
+            for (let [key, value] of formData.entries()) {
+                data[key] = value;
+            }
+            return data;
+        }
+
+        // 重置表单
+        function resetForm() {
+            if (confirm('确定要重置所有已填写的表单数据吗？此操作不可撤销。')) {
+                document.getElementById('projectForm').reset();
+                updateProgress();
+                showToast('表单已重置');
+            }
+        }
+
+        // 预览数据
+        function previewData() {
+            const data = collectFormData();
+            let preview = '当前表单数据预览：\n\n';
+            for (const [key, value] of Object.entries(data)) {
+                if (value && value.toString().trim() !== '') {
+                    const label = key; // 简化显示
+                    preview += `${label}: ${value}\n`;
+                }
+            }
+            if (preview === '当前表单数据预览：\n\n') {
+                preview += '（尚未填写任何数据）';
+            }
+            alert(preview);
+        }
+
+        // 导出Excel并保存历史
+        function exportToExcel() {
+            const data = collectFormData();
+            const projectName = data.projectName || '未命名项目';
+            const wsData = [
+                ['字段', '值'],
+                ...Object.entries(data).map(([key, value]) => [key, value])
+            ];
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, '项目信息');
+            const fileName = `${projectName}_${new Date().toISOString().slice(0,10)}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+            
+            // 保存到历史记录
+            addHistoryRecord(projectName, data);
+            updateHistoryPanel();
+            showToast(`导出成功！已保存至历史记录。`);
+        }
+
+        // Toast 提示
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => { toast.classList.remove('show'); }, 2500);
+        }
+
+        // 历史记录面板
+        function openHistoryPanel() {
+            document.getElementById('historyOverlay').classList.add('show');
+            document.getElementById('historyPanel').classList.add('show');
+            updateHistoryPanel();
+        }
+
+        function closeHistoryPanel() {
+            document.getElementById('historyOverlay').classList.remove('show');
+            document.getElementById('historyPanel').classList.remove('show');
+        }
+
+        function updateHistoryPanel() {
+            const records = getHistory();
+            const listEl = document.getElementById('historyList');
+            const countEl = document.getElementById('recordCount');
+            countEl.textContent = `共 ${records.length} 条记录`;
+            
+            if (records.length === 0) {
+                listEl.innerHTML = '<div class="history-empty"><div class="empty-icon">📭</div><div>暂无导出记录</div><div style="margin-top:0.25rem;font-size:0.8rem;">导出Excel后会自动保存到此处</div></div>';
+                return;
+            }
+            
+            listEl.innerHTML = records.map(record => {
+                const time = new Date(record.createdAt).toLocaleString('zh-CN');
+                return `
+                    <div class="history-item">
+                        <div class="hi-header">
+                            <span class="hi-project">${escapeHtml(record.projectName)}</span>
+                            <span class="hi-time">${time}</span>
+                        </div>
+                        <div class="hi-actions">
+                            <button class="hi-btn hi-btn-load" onclick="loadHistoryRecord('${record.id}')">📥 加载</button>
+                            <button class="hi-btn hi-btn-delete" onclick="deleteHistoryRecordById('${record.id}'); updateHistoryPanel();">🗑️ 删除</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function loadHistoryRecord(recordId) {
+            const records = getHistory();
+            const record = records.find(r => r.id === recordId);
+            if (!record) return;
+            const data = record.exportData;
+            const form = document.getElementById('projectForm');
+            // 填充表单
+            for (const [key, value] of Object.entries(data)) {
+                const field = form.elements[key];
+                if (field) {
+                    if (field.type === 'select-one' || field.type === 'text' || field.type === 'number' || field.type === 'date' || field.type === 'email' || field.type === 'tel' || field.type === 'url' || field.type === 'textarea') {
+                        field.value = value;
+                    }
+                }
+            }
+            updateProgress();
+            closeHistoryPanel();
+            showToast('历史记录已加载到表单');
+        }
+
+        function escapeHtml(text) {
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return String(text).replace(/[&<>"']/g, m => map[m]);
+        }
+
+        // 图标重新初始化
+        function reinitAuthIcons() {
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                lucide.createIcons();
+            }
+        }
+
+        function reinitAllIcons() {
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                lucide.createIcons();
+            }
+        }
+
+        // 初始检查登录状态
+        window.addEventListener('DOMContentLoaded', () => {
+            const currentUser = getCurrentUser();
+            if (currentUser) {
+                const users = getUsers();
+                const user = users[currentUser];
+                if (user) {
+                    switchToApp(user);
+                    return;
+                }
+            }
+            // 未登录显示认证界面
+            document.getElementById('authWrapper').style.display = '';
+            document.getElementById('appWrapper').classList.remove('active');
+            showLogin();
+            reinitAllIcons();
+        });
+
+        // 监听storage变化（多标签页同步）
+        window.addEventListener('storage', (e) => {
+            if (e.key === STORAGE_USERS || (e.key && e.key.startsWith('history_'))) {
+                // 如果用户数据变更，不影响当前登录状态（除非当前用户被删除）
+                const currentUser = getCurrentUser();
+                if (currentUser) {
+                    const users = getUsers();
+                    if (!users[currentUser]) {
+                        // 用户已被删除（如其他标签页操作），强制登出
+                        alert('您的账号在其他地方被修改，请重新登录。');
+                        signOut();
+                        switchToAuth();
+                    }
+                }
+                updateHistoryPanel();
+            }
+        });
     </script>
 </body>
 </html>
