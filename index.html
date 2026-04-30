@@ -6,7 +6,8 @@
     <title>自动化集成商 - 售前信息管理系统</title>
     <!-- 资源已全部更换为国内可访问 CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.bootcdn.net/ajax/libs/xlsx/0.20.1/xlsx.full.min.js"></script>
+    <!-- 将 xlsx CDN 更换为 jsdelivr（国内更稳定） -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.20.1/dist/xlsx.full.min.js"></script>
     <script src="https://npm.elemecdn.com/lucide@latest/dist/umd/lucide.js"></script>
 
     <style>
@@ -719,8 +720,14 @@
             return labels;
         }
 
-        // 导出Excel（横排中文）
+        // 导出Excel（横排中文）—— 增加了 XLSX 加载检测
         function exportToExcel() {
+            // 检查 XLSX 库是否已加载
+            if (typeof XLSX === 'undefined') {
+                alert('Excel 组件加载失败，请刷新页面后重试。\n如果持续出现，请联系管理员检查网络。');
+                return;
+            }
+
             const data = collectFormData();
             const labels = getFieldLabels();
             const projectName = data.projectName || '未命名项目';
