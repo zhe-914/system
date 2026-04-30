@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>自动化集成商 - 售前信息管理系统</title>
-    <!-- 资源已全部更换为国内可访问 CDN -->
+    <!-- 保留 Tailwind 和 Lucide 图标库（这两个万一加载失败也不影响核心功能） -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 将 xlsx CDN 更换为 jsdelivr（国内更稳定） -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.20.1/dist/xlsx.full.min.js"></script>
     <script src="https://npm.elemecdn.com/lucide@latest/dist/umd/lucide.js"></script>
 
     <style>
@@ -251,7 +249,7 @@
         <div class="history-overlay" id="historyOverlay" onclick="closeHistoryPanel()"></div>
         <div class="history-panel" id="historyPanel">
             <div class="history-panel-header"><h3>📋 导出历史记录</h3><button class="history-panel-close" onclick="closeHistoryPanel()"><i data-lucide="x" style="width:18px;height:18px;"></i></button></div>
-            <div class="history-list" id="historyList"><div class="history-empty"><div class="empty-icon">📭</div><div>暂无导出记录</div><div style="margin-top:0.25rem;font-size:0.8rem;">导出Excel后会自动保存到此处</div></div></div>
+            <div class="history-list" id="historyList"><div class="history-empty"><div class="empty-icon">📭</div><div>暂无导出记录</div><div style="margin-top:0.25rem;font-size:0.8rem;">导出后会自动保存到此处</div></div></div>
             <div class="history-footer"><div class="record-count" id="recordCount">共 0 条记录</div><button class="clear-all-btn" onclick="clearAllHistory()">🗑️ 清空全部记录</button></div>
         </div>
 
@@ -408,7 +406,7 @@
                 <div class="action-bar">
                     <button type="button" class="btn btn-secondary" onclick="resetForm()"><i data-lucide="rotate-ccw" style="width:20px;height:20px;"></i><span>重置表单</span></button>
                     <button type="button" class="btn btn-primary" onclick="previewData()"><i data-lucide="eye" style="width:20px;height:20px;"></i><span>预览数据</span></button>
-                    <button type="button" class="btn btn-success" onclick="exportToExcel()"><i data-lucide="download" style="width:20px;height:20px;"></i><span>导出Excel并保存记录</span></button>
+                    <button type="button" class="btn btn-success" onclick="exportToExcel()"><i data-lucide="download" style="width:20px;height:20px;"></i><span>导出Excel (CSV格式)</span></button>
                 </div>
             </form>
         </div>
@@ -720,38 +718,50 @@
             return labels;
         }
 
-        // 导出Excel（横排中文）—— 增加了 XLSX 加载检测
+        // ========== 纯 JS 导出 CSV (Excel 可直接打开) ==========
         function exportToExcel() {
-            // 检查 XLSX 库是否已加载
-            if (typeof XLSX === 'undefined') {
-                alert('Excel 组件加载失败，请刷新页面后重试。\n如果持续出现，请联系管理员检查网络。');
-                return;
-            }
-
             const data = collectFormData();
             const labels = getFieldLabels();
             const projectName = data.projectName || '未命名项目';
-            
-            const header = [];
-            const row = [];
+
+            // 构建表头和一行数据
+            const headers = [];
+            const values = [];
             for (const [name, label] of Object.entries(labels)) {
-                header.push(label);
-                row.push(data[name] || '');
+                headers.push(label);
+                values.push(data[name] || '');
             }
 
-            const wsData = [header, row];
-            const ws = XLSX.utils.aoa_to_sheet(wsData);
-            const colWidths = header.map(h => ({ wch: Math.max(h.length * 2, 12) }));
-            ws['!cols'] = colWidths;
+            // 构造 CSV 内容（添加 BOM 头防止中文乱码）
+            let csvContent = '\uFEFF'; // BOM for UTF-8
+            csvContent += headers.map(escapeCsv).join(',') + '\n';
+            csvContent += values.map(escapeCsv).join(',') + '\n';
 
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, '项目信息');
-            const fileName = `${projectName}_${new Date().toISOString().slice(0,10)}.xlsx`;
-            XLSX.writeFile(wb, fileName);
-            
+            // 创建 Blob 并下载
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${projectName}_${new Date().toISOString().slice(0,10)}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            // 保存到历史记录（和之前一样）
             addHistoryRecord(projectName, data);
             updateHistoryPanel();
-            showToast('导出成功！已保存至历史记录。');
+            showToast('导出成功！文件为 CSV 格式，可用 Excel 直接打开。');
+        }
+
+        // CSV 字段转义（处理逗号、引号、换行）
+        function escapeCsv(cell) {
+            if (cell === null || cell === undefined) return '';
+            const str = String(cell);
+            if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+                return '"' + str.replace(/"/g, '""') + '"';
+            }
+            return str;
         }
 
         function showToast(message) {
