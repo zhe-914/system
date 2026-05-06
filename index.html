@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>天津智动电子-项目信息调查表</title>
-    <!-- 保留 Tailwind 和 Lucide 图标库（这两个万一加载失败也不影响核心功能） -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://npm.elemecdn.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 
     <style>
         :root {
@@ -175,6 +175,12 @@
         .modal-success-msg { background: #f0fdf4; border: 1px solid #bbf7d0; color: #16a34a; padding: 0.6rem 0.9rem; border-radius: 8px; font-size: 0.82rem; text-align: center; margin-bottom: 0.75rem; display: none; }
         .modal-success-msg.show { display: block; }
 
+        /* 物料行样式 */
+        .item-row { display: flex; gap: 8px; margin-bottom: 6px; align-items: center; flex-wrap: wrap; }
+        .item-row input { background: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-primary); padding: 0.4rem 0.5rem; border-radius: 4px; font-size: 0.85rem; }
+        .item-row button { background: rgba(244,63,94,0.15); border: none; color: #f43f5e; padding: 0.3rem 0.6rem; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .item-row button:hover { background: rgba(244,63,94,0.3); }
+
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeInOverlay { from { opacity: 0; } to { opacity: 1; } }
@@ -194,7 +200,6 @@
     <div class="auth-wrapper" id="authWrapper">
         <div class="auth-bg-decoration d1"></div><div class="auth-bg-decoration d2"></div><div class="auth-bg-decoration d3"></div>
         <div class="auth-container" id="authContainer">
-            <!-- 登录卡片 -->
             <div class="auth-card" id="loginCard">
                 <div class="auth-logo"><div class="logo-icon"><i data-lucide="cpu" style="width:26px;height:26px;color:#fff;"></i></div><h2>天津智动电子-项目信息调查表</h2><p>自动化集成商项目平台</p></div>
                 <div class="auth-error" id="loginError"></div>
@@ -205,7 +210,6 @@
                 </form>
                 <div class="auth-links"><button onclick="showRegister()">注册</button><span class="divider">|</span><button onclick="showForgotPassword()">忘记密码？</button><span class="divider">|</span><button onclick="goToCloudInfo()">关于系统</button></div>
             </div>
-            <!-- 注册卡片 -->
             <div class="auth-card" id="registerCard" style="display:none;">
                 <div class="auth-logo"><div class="logo-icon"><i data-lucide="user-plus" style="width:26px;height:26px;color:#fff;"></i></div><h2>注册账号</h2><p>加入售前信息管理系统</p></div>
                 <div class="auth-error" id="registerError"></div><div class="auth-success" id="registerSuccess"></div>
@@ -218,7 +222,6 @@
                 </form>
                 <div class="auth-links"><button onclick="showLogin()">已有账号？立即登录</button></div>
             </div>
-            <!-- 忘记密码卡片 -->
             <div class="auth-card" id="forgotCard" style="display:none;">
                 <div class="auth-logo"><div class="logo-icon"><i data-lucide="key-round" style="width:26px;height:26px;color:#fff;"></i></div><h2>找回密码</h2><p>重置您的登录密码</p></div>
                 <div class="auth-error" id="forgotError"></div><div class="auth-success" id="forgotSuccess"></div>
@@ -245,11 +248,10 @@
         </nav>
         <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
 
-        <!-- 历史记录侧边面板 -->
         <div class="history-overlay" id="historyOverlay" onclick="closeHistoryPanel()"></div>
         <div class="history-panel" id="historyPanel">
             <div class="history-panel-header"><h3>📋 导出历史记录</h3><button class="history-panel-close" onclick="closeHistoryPanel()"><i data-lucide="x" style="width:18px;height:18px;"></i></button></div>
-            <div class="history-list" id="historyList"><div class="history-empty"><div class="empty-icon">📭</div><div>暂无导出记录</div><div style="margin-top:0.25rem;font-size:0.8rem;">导出后会自动保存到此处</div></div></div>
+            <div class="history-list" id="historyList"><div class="history-empty"><div class="empty-icon">📭</div><div>暂无导出记录</div></div></div>
             <div class="history-footer"><div class="record-count" id="recordCount">共 0 条记录</div><button class="clear-all-btn" onclick="clearAllHistory()">🗑️ 清空全部记录</button></div>
         </div>
 
@@ -403,16 +405,56 @@
                     </div>
                 </div>
 
+                <!-- 报价物料清单 -->
+                <div class="form-card" id="card-quotation">
+                    <div class="card-header" onclick="toggleCard('card-quotation')">
+                        <div class="card-icon blue"><i data-lucide="clipboard-list" style="width:20px;height:20px;color:#fff;"></i></div>
+                        <div class="card-title"><h3>报价物料清单</h3><span>按系统分类填写物料明细</span></div>
+                        <i data-lucide="chevron-down" class="toggle-icon" style="width:20px;height:20px;"></i>
+                    </div>
+                    <div class="card-content">
+                        <div style="margin-bottom:1.5rem;">
+                            <h4 style="color:#f1f5f9; margin-bottom:0.5rem;">SIS 系统部分</h4>
+                            <div id="sis-items"></div>
+                            <button type="button" class="btn-secondary" style="padding:0.4rem 1rem;" onclick="addQuotationRow('sis')">+ 添加物料</button>
+                        </div>
+                        <div style="margin-bottom:1.5rem;">
+                            <h4 style="color:#f1f5f9; margin-bottom:0.5rem;">BPCS 系统部分</h4>
+                            <div id="bpcs-items"></div>
+                            <button type="button" class="btn-secondary" style="padding:0.4rem 1rem;" onclick="addQuotationRow('bpcs')">+ 添加物料</button>
+                        </div>
+                        <div style="margin-bottom:1.5rem;">
+                            <h4 style="color:#f1f5f9; margin-bottom:0.5rem;">防雷及安全辅材部分</h4>
+                            <div id="protect-items"></div>
+                            <button type="button" class="btn-secondary" style="padding:0.4rem 1rem;" onclick="addQuotationRow('protect')">+ 添加物料</button>
+                        </div>
+                        <div style="margin-bottom:1.5rem;">
+                            <h4 style="color:#f1f5f9; margin-bottom:0.5rem;">上位及通讯部分</h4>
+                            <div id="upper-items"></div>
+                            <button type="button" class="btn-secondary" style="padding:0.4rem 1rem;" onclick="addQuotationRow('upper')">+ 添加物料</button>
+                        </div>
+                        <div style="margin-bottom:1.5rem;">
+                            <h4 style="color:#f1f5f9; margin-bottom:0.5rem;">网络部分</h4>
+                            <div id="net-items"></div>
+                            <button type="button" class="btn-secondary" style="padding:0.4rem 1rem;" onclick="addQuotationRow('net')">+ 添加物料</button>
+                        </div>
+                        <div>
+                            <h4 style="color:#f1f5f9; margin-bottom:0.5rem;">其他费用</h4>
+                            <div id="other-items"></div>
+                            <button type="button" class="btn-secondary" style="padding:0.4rem 1rem;" onclick="addQuotationRow('other')">+ 添加物料</button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="action-bar">
                     <button type="button" class="btn btn-secondary" onclick="resetForm()"><i data-lucide="rotate-ccw" style="width:20px;height:20px;"></i><span>重置表单</span></button>
                     <button type="button" class="btn btn-primary" onclick="previewData()"><i data-lucide="eye" style="width:20px;height:20px;"></i><span>预览数据</span></button>
-                    <button type="button" class="btn btn-success" onclick="exportToExcel()"><i data-lucide="download" style="width:20px;height:20px;"></i><span>导出Excel (CSV格式)</span></button>
+                    <button type="button" class="btn btn-success" onclick="generateQuotation()"><i data-lucide="download" style="width:20px;height:20px;"></i><span>生成报价单 (.xlsx)</span></button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- 修改密码弹窗 -->
     <div class="modal-overlay" id="changePasswordModal" style="display:none;">
         <div class="modal-dialog">
             <h3>修改密码</h3><p class="modal-subtitle">请验证旧密码并设置新密码</p>
@@ -449,7 +491,6 @@
             sessionStorage.removeItem(STORAGE_CURRENT);
         }
 
-        // 认证
         function signUp(username, password, phone) {
             const users = getUsers();
             if (users[username]) throw new Error('用户名已存在');
@@ -482,7 +523,6 @@
             saveUsers(users);
         }
 
-        // 历史记录（按用户隔离）
         function getHistoryKey() {
             const username = getCurrentUser();
             return username ? `history_${username}` : null;
@@ -510,7 +550,6 @@
             if (key) localStorage.removeItem(key);
         }
 
-        // UI 函数
         function showLogin() {
             document.getElementById('loginCard').style.display = '';
             document.getElementById('registerCard').style.display = 'none';
@@ -548,7 +587,6 @@
             if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
         }
 
-        // 表单事件
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const username = document.getElementById('loginUsername').value.trim();
@@ -631,7 +669,6 @@
             }
         }
 
-        // 修改密码
         function openChangePasswordModal() {
             document.getElementById('changePasswordModal').style.display = 'flex';
             document.getElementById('modalError').classList.remove('show');
@@ -663,7 +700,6 @@
             }
         });
 
-        // 表单功能
         function toggleCard(cardId) { document.getElementById(cardId).classList.toggle('collapsed'); }
         function updateProgress() {
             const inputs = document.querySelectorAll('#projectForm input, #projectForm select, #projectForm textarea');
@@ -697,73 +733,175 @@
             alert(preview || '暂无数据');
         }
 
-        // 获取中文标签映射
-        function getFieldLabels() {
-            const labels = {};
-            const form = document.getElementById('projectForm');
-            const elements = form.querySelectorAll('[name]');
-            elements.forEach(el => {
-                const name = el.getAttribute('name');
-                if (!name) return;
-                const formGroup = el.closest('.form-group');
-                if (formGroup) {
-                    const labelEl = formGroup.querySelector('.form-label');
-                    if (labelEl) {
-                        let text = labelEl.textContent || '';
-                        text = text.replace(/[*\s]+$/, '').trim();
-                        labels[name] = text;
-                    }
-                }
+        // ========== 物料清单管理 ==========
+        const quotationSections = {
+            sis: 'sis-items',
+            bpcs: 'bpcs-items',
+            protect: 'protect-items',
+            upper: 'upper-items',
+            net: 'net-items',
+            other: 'other-items'
+        };
+
+        function createQuotationRowHTML() {
+            return `
+                <div class="item-row">
+                    <input type="text" placeholder="名称" class="q-name" style="width:150px;">
+                    <input type="text" placeholder="型号规格" class="q-spec" style="width:120px;">
+                    <input type="text" placeholder="单位" class="q-unit" style="width:60px;" value="台">
+                    <input type="number" placeholder="数量" class="q-qty" style="width:70px;" value="1">
+                    <input type="number" placeholder="单价" class="q-price" style="width:90px;" value="0">
+                    <input type="text" placeholder="品牌" class="q-brand" style="width:90px;">
+                    <input type="text" placeholder="备注" class="q-remark" style="width:150px;">
+                    <button type="button" onclick="this.parentElement.remove()">X</button>
+                </div>`;
+        }
+
+        function addQuotationRow(section) {
+            document.getElementById(quotationSections[section]).insertAdjacentHTML('beforeend', createQuotationRowHTML());
+        }
+
+        function getSectionItems(section) {
+            const container = document.getElementById(quotationSections[section]);
+            const rows = container.querySelectorAll('.item-row');
+            const items = [];
+            for (let row of rows) {
+                const name = row.querySelector('.q-name')?.value.trim() || '';
+                const spec = row.querySelector('.q-spec')?.value.trim() || '';
+                if (!name && !spec) continue;
+                items.push({
+                    name,
+                    spec,
+                    unit: row.querySelector('.q-unit')?.value.trim() || '台',
+                    qty: parseFloat(row.querySelector('.q-qty')?.value) || 0,
+                    price: parseFloat(row.querySelector('.q-price')?.value) || 0,
+                    brand: row.querySelector('.q-brand')?.value.trim() || '',
+                    remark: row.querySelector('.q-remark')?.value.trim() || ''
+                });
+            }
+            return items;
+        }
+
+        // ========== 生成 Excel 报价单 ==========
+        async function generateQuotation() {
+            const projectData = collectFormData();
+            const workbook = new ExcelJS.Workbook();
+            const sheet = workbook.addWorksheet('成本报价');
+
+            sheet.columns = [
+                { width: 6 }, { width: 24 }, { width: 24 }, { width: 8 },
+                { width: 10 }, { width: 12 }, { width: 14 }, { width: 12 }, { width: 25 }
+            ];
+
+            const titleRow = sheet.addRow(['报  价  单']);
+            sheet.mergeCells('A1:I1');
+            titleRow.height = 30;
+            titleRow.getCell(1).font = { name: '宋体', size: 18, bold: true };
+            titleRow.getCell(1).alignment = { horizontal: 'center', vertical: 'middle' };
+
+            sheet.addRow(['Tian jin ZTONE Electronic science and technology']);
+            sheet.mergeCells('A2:I2');
+            sheet.addRow(['Technical support：  400-158-7168']);
+            sheet.mergeCells('A3:I3');
+
+            const customerName = projectData['ownerName'] || '';
+            const customerPhone = projectData['ownerPhone'] || '';
+            const projectTitle = projectData['projectName'] || '';
+
+            const infoRow1 = sheet.addRow(['供方：天津智动电子科技有限公司', '', '', '需方：' + customerName]);
+            sheet.mergeCells('A5:C5'); sheet.mergeCells('D5:I5');
+            const infoRow2 = sheet.addRow(['电话：15320106699', '', '', '电话：' + customerPhone]);
+            sheet.mergeCells('A6:C6'); sheet.mergeCells('D6:I6');
+            const infoRow3 = sheet.addRow(['联系人：王宏林', '', '', '联系人：']);
+            sheet.mergeCells('A7:C7'); sheet.mergeCells('D7:I7');
+            const infoRow4 = sheet.addRow(['邮箱：TJZDDZ@163.com', '', '', '项目名称：' + projectTitle]);
+            sheet.mergeCells('A8:C8'); sheet.mergeCells('D8:I8');
+
+            sheet.addRow(['一.询价的规格、价格如下：']);
+            sheet.mergeCells('A9:I9');
+
+            const headerRow = sheet.addRow(['Item No.\n序号', 'Device name\n名  称', 'specifications\n型号规格', 'Unit\n单位', 'Quantities\n数量', 'Unit Price\n单价', 'Total price\n总价', 'Brand\n品牌', 'Remark\n备注']);
+            headerRow.height = 36;
+            headerRow.eachCell(cell => {
+                cell.font = { bold: true, size: 10 };
+                cell.alignment = { wrapText: true, horizontal: 'center', vertical: 'middle' };
+                cell.border = { top: {style:'thin'}, bottom:{style:'thin'}, left:{style:'thin'}, right:{style:'thin'} };
             });
-            return labels;
-        }
 
-        // ========== 纯 JS 导出 CSV (Excel 可直接打开) ==========
-        function exportToExcel() {
-            const data = collectFormData();
-            const labels = getFieldLabels();
+            let currentRow = 11;
 
-            // 固定导出文件名：天津智动电子-项目信息调查表
-            const filename = '天津智动电子-项目信息调查表';
+            async function writeSection(title, sectionKey) {
+                const sectionRow = sheet.addRow([title]);
+                sheet.mergeCells(`A${currentRow}:I${currentRow}`);
+                sectionRow.getCell(1).font = { bold: true, size: 11 };
+                sectionRow.getCell(1).fill = { type: 'pattern', pattern:'solid', fgColor:{argb:'FFD9E2F3'} };
+                sectionRow.getCell(1).alignment = { horizontal: 'left', vertical: 'middle' };
+                currentRow++;
 
-            // 构建表头和一行数据
-            const headers = [];
-            const values = [];
-            for (const [name, label] of Object.entries(labels)) {
-                headers.push(label);
-                values.push(data[name] || '');
+                const items = getSectionItems(sectionKey);
+                let count = 0;
+                for (let i = 0; i < items.length; i++) {
+                    const it = items[i];
+                    const row = sheet.addRow([count+1, it.name, it.spec, it.unit, it.qty, it.price, '', it.brand, it.remark]);
+                    row.getCell(7).value = { formula: `E${currentRow}*F${currentRow}`, result: it.qty * it.price };
+                    row.eachCell(cell => {
+                        cell.border = { top: {style:'thin'}, bottom:{style:'thin'}, left:{style:'thin'}, right:{style:'thin'} };
+                    });
+                    count++;
+                    currentRow++;
+                }
+
+                const subtotalRow = sheet.addRow(['', '', '', '', '', '小计', '', '', '']);
+                if (count > 0) {
+                    subtotalRow.getCell(7).value = { formula: `SUM(G${currentRow-count}:G${currentRow-1})` };
+                }
+                subtotalRow.eachCell(cell => {
+                    cell.font = { bold: true };
+                    cell.border = { top: {style:'thin'}, bottom:{style:'thin'}, left:{style:'thin'}, right:{style:'thin'} };
+                });
+                const subtotalRowNum = currentRow;
+                currentRow++;
+                return subtotalRowNum;
             }
 
-            // 构造 CSV 内容（添加 BOM 头防止中文乱码）
-            let csvContent = '\uFEFF'; // BOM for UTF-8
-            csvContent += headers.map(escapeCsv).join(',') + '\n';
-            csvContent += values.map(escapeCsv).join(',') + '\n';
+            const sisSub = await writeSection('SIS系统部分', 'sis');
+            const bpcsSub = await writeSection('BPCS系统部分', 'bpcs');
+            const protectSub = await writeSection('防雷及安全辅材部分', 'protect');
+            const upperSub = await writeSection('上位及通讯部分', 'upper');
+            const netSub = await writeSection('网络部分', 'net');
+            const otherSub = await writeSection('其他费用', 'other');
 
-            // 创建 Blob 并下载
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
+            currentRow++;
+            const totalRow = sheet.addRow(['总计：', '', '', '', '', '', '', '', '']);
+            sheet.mergeCells(`A${currentRow}:F${currentRow}`);
+            totalRow.getCell(1).font = { bold: true, size: 12 };
+            totalRow.getCell(7).value = { formula: `G${sisSub}+G${bpcsSub}+G${protectSub}+G${upperSub}+G${netSub}+G${otherSub}` };
+            totalRow.getCell(7).font = { bold: true, size: 12 };
+            sheet.mergeCells(`H${currentRow}:I${currentRow}`);
+            totalRow.getCell(8).value = '大写：元整';
+            totalRow.getCell(8).font = { bold: true };
+            currentRow += 2;
+
+            sheet.addRow(['备注：1、本项目含税含运费含一次现场调试费...']);
+            sheet.mergeCells(`A${currentRow}:I${currentRow}`);
+            currentRow += 2;
+            sheet.addRow(['天津智动电子科技有限公司']);
+            sheet.mergeCells(`A${currentRow}:I${currentRow}`);
+            currentRow++;
+            sheet.addRow([new Date().toISOString().slice(0,10)]);
+            sheet.mergeCells(`A${currentRow}:I${currentRow}`);
+
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             const link = document.createElement('a');
-            link.href = url;
-            link.download = `${filename}_${new Date().toISOString().slice(0,10)}.csv`;
-            document.body.appendChild(link);
+            link.href = URL.createObjectURL(blob);
+            link.download = `报价单_${projectTitle || '项目'}_${new Date().toISOString().slice(0,10)}.xlsx`;
             link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
+            URL.revokeObjectURL(link.href);
 
-            // 保存到历史记录（使用固定文件名作为项目名称记录）
-            addHistoryRecord(filename, data);
+            addHistoryRecord(projectTitle || '未命名项目', projectData);
             updateHistoryPanel();
-            showToast('导出成功！文件为 CSV 格式，可用 Excel 直接打开。');
-        }
-
-        // CSV 字段转义（处理逗号、引号、换行）
-        function escapeCsv(cell) {
-            if (cell === null || cell === undefined) return '';
-            const str = String(cell);
-            if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
-                return '"' + str.replace(/"/g, '""') + '"';
-            }
-            return str;
+            showToast('报价单已生成，请查看下载文件！');
         }
 
         function showToast(message) {
@@ -773,7 +911,6 @@
             setTimeout(() => toast.classList.remove('show'), 2500);
         }
 
-        // 历史面板
         function openHistoryPanel() {
             document.getElementById('historyOverlay').classList.add('show');
             document.getElementById('historyPanel').classList.add('show');
@@ -826,7 +963,6 @@
         function reinitAuthIcons() { if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons(); }
         function reinitAllIcons() { if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons(); }
 
-        // 初始化
         window.addEventListener('DOMContentLoaded', () => {
             const currentUser = getCurrentUser();
             if (currentUser) {
