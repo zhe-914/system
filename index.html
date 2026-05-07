@@ -175,7 +175,6 @@
         .modal-success-msg { background: #f0fdf4; border: 1px solid #bbf7d0; color: #16a34a; padding: 0.6rem 0.9rem; border-radius: 8px; font-size: 0.82rem; text-align: center; margin-bottom: 0.75rem; display: none; }
         .modal-success-msg.show { display: block; }
 
-        /* 物料行样式 */
         .item-row { display: flex; gap: 8px; margin-bottom: 6px; align-items: center; flex-wrap: wrap; }
         .item-row input { background: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-primary); padding: 0.4rem 0.5rem; border-radius: 4px; font-size: 0.85rem; }
         .item-row button { background: rgba(244,63,94,0.15); border: none; color: #f43f5e; padding: 0.3rem 0.6rem; border-radius: 4px; cursor: pointer; font-weight: bold; }
@@ -196,7 +195,6 @@
     </style>
 </head>
 <body>
-    <!-- 认证视图 -->
     <div class="auth-wrapper" id="authWrapper">
         <div class="auth-bg-decoration d1"></div><div class="auth-bg-decoration d2"></div><div class="auth-bg-decoration d3"></div>
         <div class="auth-container" id="authContainer">
@@ -234,7 +232,6 @@
         </div>
     </div>
 
-    <!-- 主应用 -->
     <div class="app-wrapper" id="appWrapper">
         <div class="bg-pattern"></div><div class="grid-bg"></div>
         <nav class="app-navbar">
@@ -263,7 +260,6 @@
             </header>
 
             <form id="projectForm">
-                <!-- 项目概况 -->
                 <div class="form-card" id="card-overview">
                     <div class="card-header" onclick="toggleCard('card-overview')">
                         <div class="card-icon blue"><i data-lucide="folder-kanban" style="width:20px;height:20px;color:#fff;"></i></div>
@@ -284,7 +280,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- 业主单位信息 -->
                 <div class="form-card" id="card-owner">
                     <div class="card-header" onclick="toggleCard('card-owner')">
                         <div class="card-icon cyan"><i data-lucide="building-2" style="width:20px;height:20px;color:#fff;"></i></div>
@@ -305,7 +300,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- 关键决策人 -->
                 <div class="form-card" id="card-decision">
                     <div class="card-header" onclick="toggleCard('card-decision')">
                         <div class="card-icon emerald"><i data-lucide="users" style="width:20px;height:20px;color:#fff;"></i></div>
@@ -335,7 +329,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- 技术资料 -->
                 <div class="form-card" id="card-tech">
                     <div class="card-header" onclick="toggleCard('card-tech')">
                         <div class="card-icon amber"><i data-lucide="file-text" style="width:20px;height:20px;color:#fff;"></i></div>
@@ -357,7 +350,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- 关键设备品牌要求 -->
                 <div class="form-card" id="card-equipment">
                     <div class="card-header" onclick="toggleCard('card-equipment')">
                         <div class="card-icon rose"><i data-lucide="cpu" style="width:20px;height:20px;color:#fff;"></i></div>
@@ -379,7 +371,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- 商务手续 -->
                 <div class="form-card" id="card-business">
                     <div class="card-header" onclick="toggleCard('card-business')">
                         <div class="card-icon purple"><i data-lucide="briefcase" style="width:20px;height:20px;color:#fff;"></i></div>
@@ -405,7 +396,6 @@
                     </div>
                 </div>
 
-                <!-- 报价物料清单 -->
                 <div class="form-card" id="card-quotation">
                     <div class="card-header" onclick="toggleCard('card-quotation')">
                         <div class="card-icon blue"><i data-lucide="clipboard-list" style="width:20px;height:20px;color:#fff;"></i></div>
@@ -471,25 +461,14 @@
     <div class="toast" id="toast"><i data-lucide="check-circle" class="toast-icon" style="width:20px;height:20px;"></i><span id="toastMessage">操作成功</span></div>
 
     <script>
-        // ========== 本地存储 ==========
         const STORAGE_USERS = 'app_users';
         const STORAGE_CURRENT = 'currentUser';
 
-        function getUsers() {
-            try { return JSON.parse(localStorage.getItem(STORAGE_USERS) || '{}'); } catch (e) { return {}; }
-        }
-        function saveUsers(users) {
-            localStorage.setItem(STORAGE_USERS, JSON.stringify(users));
-        }
-        function getCurrentUser() {
-            return sessionStorage.getItem(STORAGE_CURRENT);
-        }
-        function setCurrentUser(username) {
-            sessionStorage.setItem(STORAGE_CURRENT, username);
-        }
-        function clearCurrentUser() {
-            sessionStorage.removeItem(STORAGE_CURRENT);
-        }
+        function getUsers() { try { return JSON.parse(localStorage.getItem(STORAGE_USERS) || '{}'); } catch (e) { return {}; } }
+        function saveUsers(users) { localStorage.setItem(STORAGE_USERS, JSON.stringify(users)); }
+        function getCurrentUser() { return sessionStorage.getItem(STORAGE_CURRENT); }
+        function setCurrentUser(username) { sessionStorage.setItem(STORAGE_CURRENT, username); }
+        function clearCurrentUser() { sessionStorage.removeItem(STORAGE_CURRENT); }
 
         function signUp(username, password, phone) {
             const users = getUsers();
@@ -523,32 +502,16 @@
             saveUsers(users);
         }
 
-        function getHistoryKey() {
-            const username = getCurrentUser();
-            return username ? `history_${username}` : null;
-        }
-        function getHistory() {
-            const key = getHistoryKey();
-            if (!key) return [];
-            try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch (e) { return []; }
-        }
-        function saveHistory(records) {
-            const key = getHistoryKey();
-            if (key) localStorage.setItem(key, JSON.stringify(records.slice(0, 50)));
-        }
+        function getHistoryKey() { const uname = getCurrentUser(); return uname ? `history_${uname}` : null; }
+        function getHistory() { const key = getHistoryKey(); if (!key) return []; try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch (e) { return []; } }
+        function saveHistory(records) { const key = getHistoryKey(); if (key) localStorage.setItem(key, JSON.stringify(records.slice(0, 50))); }
         function addHistoryRecord(projectName, exportData) {
             const records = getHistory();
             records.unshift({ id: Date.now().toString(), projectName: projectName || '未命名项目', exportData, createdAt: new Date().toISOString() });
             saveHistory(records);
         }
-        function deleteHistoryRecordById(recordId) {
-            const records = getHistory().filter(r => r.id !== recordId);
-            saveHistory(records);
-        }
-        function clearAllHistory() {
-            const key = getHistoryKey();
-            if (key) localStorage.removeItem(key);
-        }
+        function deleteHistoryRecordById(recordId) { saveHistory(getHistory().filter(r => r.id !== recordId)); }
+        function clearAllHistory() { const key = getHistoryKey(); if (key) localStorage.removeItem(key); }
 
         function showLogin() {
             document.getElementById('loginCard').style.display = '';
@@ -576,9 +539,7 @@
             document.getElementById('forgotForm').reset();
             reinitAuthIcons();
         }
-        function goToCloudInfo() {
-            alert('关于天津智动电子-项目信息调查表\n\n所有数据安全存储在您的浏览器本地。');
-        }
+        function goToCloudInfo() { alert('关于天津智动电子-项目信息调查表\n\n所有数据安全存储在您的浏览器本地。'); }
         function togglePassword(inputId, btn) {
             const input = document.getElementById(inputId);
             const icon = btn.querySelector('[data-lucide]') || btn.querySelector('svg');
@@ -594,13 +555,7 @@
             const errorEl = document.getElementById('loginError');
             errorEl.classList.remove('show');
             if (!username || !password) { errorEl.textContent = '请填写用户名和密码'; errorEl.classList.add('show'); return; }
-            try {
-                const user = signIn(username, password);
-                switchToApp(user);
-            } catch (err) {
-                errorEl.textContent = err.message || '登录失败';
-                errorEl.classList.add('show');
-            }
+            try { switchToApp(signIn(username, password)); } catch (err) { errorEl.textContent = err.message; errorEl.classList.add('show'); }
         });
         document.getElementById('registerForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -617,15 +572,8 @@
             if (password.length < 6) { errorEl.textContent = '密码至少6位'; errorEl.classList.add('show'); return; }
             if (password !== confirmPassword) { errorEl.textContent = '两次密码不一致'; errorEl.classList.add('show'); return; }
             if (phone && !/^1[3-9]\d{9}$/.test(phone)) { errorEl.textContent = '手机号无效'; errorEl.classList.add('show'); return; }
-            try {
-                signUp(username, password, phone);
-                successEl.textContent = '注册成功！请登录。';
-                successEl.classList.add('show');
-                setTimeout(() => { showLogin(); }, 2000);
-            } catch (err) {
-                errorEl.textContent = err.message;
-                errorEl.classList.add('show');
-            }
+            try { signUp(username, password, phone); successEl.textContent = '注册成功！请登录。'; successEl.classList.add('show'); setTimeout(() => showLogin(), 2000); }
+            catch (err) { errorEl.textContent = err.message; errorEl.classList.add('show'); }
         });
         document.getElementById('forgotForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -634,14 +582,7 @@
             const successEl = document.getElementById('forgotSuccess');
             errorEl.classList.remove('show'); successEl.classList.remove('show');
             if (!username) { errorEl.textContent = '请输入用户名'; errorEl.classList.add('show'); return; }
-            try {
-                resetPassword(username);
-                successEl.textContent = '密码已重置为 123456，请使用新密码登录。';
-                successEl.classList.add('show');
-            } catch (err) {
-                errorEl.textContent = err.message;
-                errorEl.classList.add('show');
-            }
+            try { resetPassword(username); successEl.textContent = '密码已重置为 123456，请使用新密码登录。'; successEl.classList.add('show'); } catch (err) { errorEl.textContent = err.message; errorEl.classList.add('show'); }
         });
 
         function switchToApp(user) {
@@ -675,9 +616,7 @@
             document.getElementById('modalSuccess').classList.remove('show');
             document.getElementById('changePasswordForm').reset();
         }
-        function closeChangePasswordModal() {
-            document.getElementById('changePasswordModal').style.display = 'none';
-        }
+        function closeChangePasswordModal() { document.getElementById('changePasswordModal').style.display = 'none'; }
         document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const oldPassword = document.getElementById('oldPassword').value;
@@ -689,15 +628,8 @@
             if (!oldPassword || !newPassword || !confirmNewPassword) { errorEl.textContent = '请填写所有字段'; errorEl.classList.add('show'); return; }
             if (newPassword.length < 6) { errorEl.textContent = '新密码至少6位'; errorEl.classList.add('show'); return; }
             if (newPassword !== confirmNewPassword) { errorEl.textContent = '两次密码不一致'; errorEl.classList.add('show'); return; }
-            try {
-                changePassword(oldPassword, newPassword);
-                successEl.textContent = '密码修改成功！';
-                successEl.classList.add('show');
-                setTimeout(() => { closeChangePasswordModal(); }, 1500);
-            } catch (err) {
-                errorEl.textContent = err.message;
-                errorEl.classList.add('show');
-            }
+            try { changePassword(oldPassword, newPassword); successEl.textContent = '密码修改成功！'; successEl.classList.add('show'); setTimeout(() => closeChangePasswordModal(), 1500); }
+            catch (err) { errorEl.textContent = err.message; errorEl.classList.add('show'); }
         });
 
         function toggleCard(cardId) { document.getElementById(cardId).classList.toggle('collapsed'); }
@@ -718,48 +650,29 @@
             return data;
         }
         function resetForm() {
-            if (confirm('确定重置所有表单数据吗？')) {
-                document.getElementById('projectForm').reset();
-                updateProgress();
-                showToast('表单已重置');
-            }
+            if (confirm('确定重置所有表单数据吗？')) { document.getElementById('projectForm').reset(); updateProgress(); showToast('表单已重置'); }
         }
         function previewData() {
             const data = collectFormData();
             let preview = '当前表单数据：\n\n';
-            for (const [key, value] of Object.entries(data)) {
-                if (value && value.toString().trim() !== '') preview += `${key}: ${value}\n`;
-            }
+            for (const [key, value] of Object.entries(data)) { if (value && value.toString().trim() !== '') preview += `${key}: ${value}\n`; }
             alert(preview || '暂无数据');
         }
 
-        // ========== 物料清单管理 ==========
-        const quotationSections = {
-            sis: 'sis-items',
-            bpcs: 'bpcs-items',
-            protect: 'protect-items',
-            upper: 'upper-items',
-            net: 'net-items',
-            other: 'other-items'
-        };
-
+        const quotationSections = { sis: 'sis-items', bpcs: 'bpcs-items', protect: 'protect-items', upper: 'upper-items', net: 'net-items', other: 'other-items' };
         function createQuotationRowHTML() {
-            return `
-                <div class="item-row">
-                    <input type="text" placeholder="名称" class="q-name" style="width:150px;">
-                    <input type="text" placeholder="型号规格" class="q-spec" style="width:120px;">
-                    <input type="text" placeholder="单位" class="q-unit" style="width:60px;" value="台">
-                    <input type="number" placeholder="数量" class="q-qty" style="width:70px;" value="1">
-                    <input type="number" placeholder="单价" class="q-price" style="width:90px;" value="0">
-                    <input type="text" placeholder="品牌" class="q-brand" style="width:90px;">
-                    <input type="text" placeholder="备注" class="q-remark" style="width:150px;">
-                    <button type="button" onclick="this.parentElement.remove()">X</button>
-                </div>`;
+            return `<div class="item-row">
+                <input type="text" placeholder="名称" class="q-name" style="width:150px;">
+                <input type="text" placeholder="型号规格" class="q-spec" style="width:120px;">
+                <input type="text" placeholder="单位" class="q-unit" style="width:60px;" value="台">
+                <input type="number" placeholder="数量" class="q-qty" style="width:70px;" value="1">
+                <input type="number" placeholder="单价" class="q-price" style="width:90px;" value="0">
+                <input type="text" placeholder="品牌" class="q-brand" style="width:90px;">
+                <input type="text" placeholder="备注" class="q-remark" style="width:150px;">
+                <button type="button" onclick="this.parentElement.remove()">X</button>
+            </div>`;
         }
-
-        function addQuotationRow(section) {
-            document.getElementById(quotationSections[section]).insertAdjacentHTML('beforeend', createQuotationRowHTML());
-        }
+        function addQuotationRow(section) { document.getElementById(quotationSections[section]).insertAdjacentHTML('beforeend', createQuotationRowHTML()); }
 
         function getSectionItems(section) {
             const container = document.getElementById(quotationSections[section]);
@@ -770,8 +683,7 @@
                 const spec = row.querySelector('.q-spec')?.value.trim() || '';
                 if (!name && !spec) continue;
                 items.push({
-                    name,
-                    spec,
+                    name, spec,
                     unit: row.querySelector('.q-unit')?.value.trim() || '台',
                     qty: parseFloat(row.querySelector('.q-qty')?.value) || 0,
                     price: parseFloat(row.querySelector('.q-price')?.value) || 0,
@@ -782,7 +694,6 @@
             return items;
         }
 
-        // ========== 生成 Excel 报价单 ==========
         async function generateQuotation() {
             const projectData = collectFormData();
             const workbook = new ExcelJS.Workbook();
@@ -803,6 +714,9 @@
             sheet.mergeCells('A2:I2');
             sheet.addRow(['Technical support：  400-158-7168']);
             sheet.mergeCells('A3:I3');
+
+            // 添加空行使后续行号匹配原始报价单
+            sheet.addRow([]);
 
             const customerName = projectData['ownerName'] || '';
             const customerPhone = projectData['ownerPhone'] || '';
@@ -844,21 +758,14 @@
                     const it = items[i];
                     const row = sheet.addRow([count+1, it.name, it.spec, it.unit, it.qty, it.price, '', it.brand, it.remark]);
                     row.getCell(7).value = { formula: `E${currentRow}*F${currentRow}`, result: it.qty * it.price };
-                    row.eachCell(cell => {
-                        cell.border = { top: {style:'thin'}, bottom:{style:'thin'}, left:{style:'thin'}, right:{style:'thin'} };
-                    });
+                    row.eachCell(cell => cell.border = { top: {style:'thin'}, bottom:{style:'thin'}, left:{style:'thin'}, right:{style:'thin'} });
                     count++;
                     currentRow++;
                 }
 
                 const subtotalRow = sheet.addRow(['', '', '', '', '', '小计', '', '', '']);
-                if (count > 0) {
-                    subtotalRow.getCell(7).value = { formula: `SUM(G${currentRow-count}:G${currentRow-1})` };
-                }
-                subtotalRow.eachCell(cell => {
-                    cell.font = { bold: true };
-                    cell.border = { top: {style:'thin'}, bottom:{style:'thin'}, left:{style:'thin'}, right:{style:'thin'} };
-                });
+                if (count > 0) subtotalRow.getCell(7).value = { formula: `SUM(G${currentRow-count}:G${currentRow-1})` };
+                subtotalRow.eachCell(cell => { cell.font = { bold: true }; cell.border = { top: {style:'thin'}, bottom:{style:'thin'}, left:{style:'thin'}, right:{style:'thin'} }; });
                 const subtotalRowNum = currentRow;
                 currentRow++;
                 return subtotalRowNum;
@@ -911,35 +818,21 @@
             setTimeout(() => toast.classList.remove('show'), 2500);
         }
 
-        function openHistoryPanel() {
-            document.getElementById('historyOverlay').classList.add('show');
-            document.getElementById('historyPanel').classList.add('show');
-            updateHistoryPanel();
-        }
-        function closeHistoryPanel() {
-            document.getElementById('historyOverlay').classList.remove('show');
-            document.getElementById('historyPanel').classList.remove('show');
-        }
+        function openHistoryPanel() { document.getElementById('historyOverlay').classList.add('show'); document.getElementById('historyPanel').classList.add('show'); updateHistoryPanel(); }
+        function closeHistoryPanel() { document.getElementById('historyOverlay').classList.remove('show'); document.getElementById('historyPanel').classList.remove('show'); }
         function updateHistoryPanel() {
             const records = getHistory();
             const listEl = document.getElementById('historyList');
             document.getElementById('recordCount').textContent = `共 ${records.length} 条记录`;
-            if (records.length === 0) {
-                listEl.innerHTML = '<div class="history-empty"><div class="empty-icon">📭</div><div>暂无导出记录</div></div>';
-                return;
-            }
+            if (records.length === 0) { listEl.innerHTML = '<div class="history-empty"><div class="empty-icon">📭</div><div>暂无导出记录</div></div>'; return; }
             listEl.innerHTML = records.map(r => `
                 <div class="history-item">
-                    <div class="hi-header">
-                        <span class="hi-project">${escapeHtml(r.projectName)}</span>
-                        <span class="hi-time">${new Date(r.createdAt).toLocaleString('zh-CN')}</span>
-                    </div>
+                    <div class="hi-header"><span class="hi-project">${escapeHtml(r.projectName)}</span><span class="hi-time">${new Date(r.createdAt).toLocaleString('zh-CN')}</span></div>
                     <div class="hi-actions">
                         <button class="hi-btn hi-btn-load" onclick="loadHistoryRecord('${r.id}')">📥 加载</button>
                         <button class="hi-btn hi-btn-delete" onclick="deleteHistoryRecordById('${r.id}'); updateHistoryPanel();">🗑️ 删除</button>
                     </div>
-                </div>
-            `).join('');
+                </div>`).join('');
         }
         function loadHistoryRecord(recordId) {
             const records = getHistory();
@@ -947,42 +840,28 @@
             if (!record) return;
             const data = record.exportData;
             const form = document.getElementById('projectForm');
-            for (const [key, value] of Object.entries(data)) {
-                const field = form.elements[key];
-                if (field) field.value = value;
-            }
+            for (const [key, value] of Object.entries(data)) { const field = form.elements[key]; if (field) field.value = value; }
             updateProgress();
             closeHistoryPanel();
             showToast('历史记录已加载');
         }
-        function escapeHtml(text) {
-            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-            return String(text).replace(/[&<>"']/g, m => map[m]);
-        }
+        function escapeHtml(text) { const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }; return String(text).replace(/[&<>"']/g, m => map[m]); }
 
         function reinitAuthIcons() { if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons(); }
         function reinitAllIcons() { if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons(); }
 
         window.addEventListener('DOMContentLoaded', () => {
             const currentUser = getCurrentUser();
-            if (currentUser) {
-                const users = getUsers();
-                const user = users[currentUser];
-                if (user) { switchToApp(user); return; }
-            }
+            if (currentUser) { const users = getUsers(); const user = users[currentUser]; if (user) { switchToApp(user); return; } }
             document.getElementById('authWrapper').style.display = '';
             document.getElementById('appWrapper').classList.remove('active');
             showLogin();
             reinitAllIcons();
         });
-
         window.addEventListener('storage', (e) => {
             if (e.key === STORAGE_USERS || (e.key && e.key.startsWith('history_'))) {
                 const currentUser = getCurrentUser();
-                if (currentUser) {
-                    const users = getUsers();
-                    if (!users[currentUser]) { alert('账号已变更，请重新登录'); signOut(); switchToAuth(); }
-                }
+                if (currentUser) { const users = getUsers(); if (!users[currentUser]) { alert('账号已变更，请重新登录'); signOut(); switchToAuth(); } }
                 updateHistoryPanel();
             }
         });
